@@ -41,3 +41,9 @@ EXECUTION_PLAN.md
 REALITY_CHECK.md
 DESIGN_LAYOUT.md
 .claude/
+
+# Design reference (Stitch design files — not part of source)
+stitch_plans/
+
+# Brainstorming/planning artifacts
+.superpowers/
