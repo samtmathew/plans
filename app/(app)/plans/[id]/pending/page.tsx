@@ -4,10 +4,9 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
-import { StatusBadge } from '@/components/common/StatusBadge'
-import { calcEstimatedPerPerson, calcPerHeadTotal, calcGroupShareTotal } from '@/lib/utils/cost'
+import { calcEstimatedPerPerson } from '@/lib/utils/cost'
 import { formatCurrency } from '@/lib/utils/format'
-import type { Plan, PlanAttendee, PlanItem } from '@/types'
+import type { PlanAttendee, PlanItem } from '@/types'
 
 interface Props {
   params: Promise<{ id: string }>
