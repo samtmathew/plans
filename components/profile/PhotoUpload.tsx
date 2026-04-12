@@ -25,14 +25,19 @@ export function AvatarUpload({ userId, currentUrl, name, onUpload }: AvatarUploa
       const supabase = createClient()
       const ext = file.name.split('.').pop()
       const path = `${userId}.${ext}`
+      console.log('[AvatarUpload] uploading to path:', path, 'file type:', file.type)
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(path, file, { upsert: true })
       if (uploadError) throw uploadError
+
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      console.log('[AvatarUpload] public URL:', data.publicUrl)
       setUrl(data.publicUrl)
       onUpload(data.publicUrl)
-    } catch {
+    } catch (err) {
+      console.error('[AvatarUpload] upload error:', err)
       setError('Upload failed. Please try again.')
     } finally {
       setUploading(false)
@@ -84,15 +89,20 @@ export function PhotosUpload({ userId, currentUrls, onUpload }: PhotosUploadProp
       const slot = urls.length + 1
       const ext = file.name.split('.').pop()
       const path = `${userId}/${slot}.${ext}`
+      console.log('[PhotosUpload] uploading to path:', path, 'file type:', file.type)
+
       const { error: uploadError } = await supabase.storage
         .from('profile-photos')
         .upload(path, file, { upsert: true })
       if (uploadError) throw uploadError
+
       const { data } = supabase.storage.from('profile-photos').getPublicUrl(path)
+      console.log('[PhotosUpload] public URL:', data.publicUrl)
       const updated = [...urls, data.publicUrl]
       setUrls(updated)
       onUpload(updated)
-    } catch {
+    } catch (err) {
+      console.error('[PhotosUpload] upload error:', err)
       setError('Upload failed. Please try again.')
     }
   }

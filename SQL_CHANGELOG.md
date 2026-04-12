@@ -261,3 +261,57 @@ CREATE POLICY "plan-gallery: owner delete"
 ```
 
 **Path convention:** uploads are stored as `{userId}/{timestamp}-{random}.{ext}` so the owner check (`foldername(name)[1]`) correctly identifies the uploader.
+
+---
+
+## 2026-04-11 — Storage policies for avatars and profile-photos
+
+### Storage policies — avatars
+
+```sql
+CREATE POLICY "avatars: public read"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'avatars');
+
+CREATE POLICY "avatars: auth upload"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'avatars');
+
+CREATE POLICY "avatars: owner update"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'avatars');
+
+CREATE POLICY "avatars: owner delete"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'avatars');
+```
+
+**Why:** The `avatars` bucket was missing RLS policies, causing all upload attempts to fail with a 403. The `auth upload` policy allows authenticated users to insert files into the bucket.
+
+### Storage policies — profile-photos
+
+```sql
+CREATE POLICY "profile-photos: public read"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'profile-photos');
+
+CREATE POLICY "profile-photos: auth upload"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'profile-photos');
+
+CREATE POLICY "profile-photos: owner update"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'profile-photos');
+
+CREATE POLICY "profile-photos: owner delete"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'profile-photos');
+```
+
+**Why:** The `profile-photos` bucket was missing RLS policies, causing all upload attempts to fail with a 403. The `auth upload` policy allows authenticated users to insert files into the bucket.

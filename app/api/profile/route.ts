@@ -27,11 +27,13 @@ export async function POST(request: Request) {
     photos: body.photos ?? [],
   }
 
+
   const { data, error } = await supabase
     .from('profiles')
     .upsert(profileData)
     .select()
     .single()
+
 
   if (error) {
     return NextResponse.json({ data: null, error: error.message }, { status: 500 })
