@@ -34,3 +34,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# project docs / local config (not for git)
+.mcp.json
+EXECUTION_PLAN.md
+REALITY_CHECK.md
