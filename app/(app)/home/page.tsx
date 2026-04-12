@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { PlanCard } from '@/components/plan/PlanCard'
 import { EmptyState } from '@/components/common/EmptyState'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { Plus } from 'lucide-react'
 import type { Plan } from '@/types'
 
 const PLAN_SELECT = `
@@ -61,13 +61,11 @@ export default async function HomePage() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Your Plans</h1>
-        <Button asChild size="sm">
-          <Link href="/plans/new">Create plan</Link>
-        </Button>
-      </div>
+    <div className="pt-4">
+      {/* Large headline */}
+      <h1 className="font-headline text-6xl md:text-7xl lg:text-8xl font-bold text-foreground tracking-tight pt-8 pb-8">
+        Your Plans
+      </h1>
 
       {uniquePlans.length === 0 ? (
         <EmptyState
@@ -77,12 +75,22 @@ export default async function HomePage() {
           ctaHref="/plans/new"
         />
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 mb-32">
           {uniquePlans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} currentUserId={user!.id} />
+            <div key={plan.id} className="break-inside-avoid mb-8">
+              <PlanCard plan={plan} />
+            </div>
           ))}
         </div>
       )}
+
+      {/* FAB button */}
+      <Link
+        href="/plans/new"
+        className="fixed bottom-8 right-8 w-14 h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+      >
+        <Plus className="w-6 h-6" />
+      </Link>
     </div>
   )
 }
