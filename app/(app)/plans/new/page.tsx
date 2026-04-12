@@ -35,7 +35,7 @@ export default function NewPlanPage() {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(createPlanSchema),
-    defaultValues: { status: 'active', join_approval: true },
+    defaultValues: { title: '', description: '', itinerary: '', start_date: '', status: 'active', join_approval: true },
   })
 
   function addAttendee(profile: Profile) {
@@ -65,7 +65,8 @@ export default function NewPlanPage() {
       setError(json.error)
       return
     }
-    router.push(`/plans/${json.data.id}`)
+    router.push('/home')
+    router.refresh()
   }
 
   return (
@@ -88,6 +89,14 @@ export default function NewPlanPage() {
               {...register('title')}
             />
             {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="start_date">Date</Label>
+            <Input
+              id="start_date"
+              type="date"
+              {...register('start_date')}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="description">Vibe / description *</Label>

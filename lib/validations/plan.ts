@@ -19,6 +19,7 @@ export const createPlanSchema = z.object({
     .min(1, 'Description is required')
     .max(300, 'Description must be 300 characters or less'),
   itinerary: z.string().min(1, 'Itinerary is required'),
+  start_date: z.string().optional().nullable().transform((v) => (!v ? null : v)),
   status: z.enum(['draft', 'active']),
   join_approval: z.boolean().default(true),
   items: z.array(planItemSchema).default([]),

@@ -1,12 +1,12 @@
 # Plans — Project Status
 
 > Last updated: 2026-04-11
-> Updated by: Claude (post-setup session)
+> Updated by: Claude (bug fix + plan publish session)
 
 ---
 
 ## Current Phase
-**Phase 2 — Supabase connected and smoke tested. Dev server running. Ready for feature polish and known gap fixes.**
+**Phase 3 — Core plan creation and home page flow working end-to-end. Ready for feature polish.**
 
 ---
 
@@ -80,7 +80,7 @@
 - [x] `components/common/StatusBadge.tsx` — coloured status chips
 - [x] `components/common/CopyLink.tsx` — copy-to-clipboard join link
 - [x] `components/common/EmptyState.tsx` — empty state with optional CTA
-- [x] `components/plan/PlanCard.tsx` — plan summary card
+- [x] `components/plan/PlanCard.tsx` — Pinterest-style 2-column grid card (date, cost/person, status strip)
 - [x] `components/plan/CostBreakdown.tsx` — cost items list with live totals
 - [x] `components/plan/AttendeeSearch.tsx` — debounced user search dropdown
 - [x] `components/plan/AttendeeList.tsx` — attendee list with approve/reject
@@ -98,7 +98,7 @@ These are intentionally deferred — scaffold only, no logic wired yet:
 
 - [ ] `PlanDetail` component (plan detail uses inline JSX in page.tsx — no separate component file yet)
 - [ ] Profile edit page (`/profile/edit` route — currently edit is inline on `/profile`, route not wired)
-- [ ] `app/(app)/home/page.tsx` — the initial broad fetch query is a no-op (noted with comment); uses two separate queries as a workaround — should be cleaned up with a proper Supabase join or RPC
+- [ ] Cost per person not shown on home page cards — `plan_items` is excluded from the home query until `plan_items` RLS policies are confirmed fixed in Supabase
 - [ ] No toast/notification system yet (errors shown inline only)
 - [ ] No loading skeletons (pages show nothing while loading)
 - [ ] Drag-to-reorder in `CostBreakdown` not implemented (drag handle UI exists but no drag library wired)
@@ -131,10 +131,11 @@ These are intentionally deferred — scaffold only, no logic wired yet:
 - [x] Approve the join request — verify attendee count updates and group cost splits recalculate
 
 ### 4. Fix Known Gaps — NEXT UP
-- [ ] Clean up the home page double-query (use a single query with proper filtering)
+- [x] Clean up the home page dead broad-fetch query
 - [ ] Wire `/profile/edit` route or confirm inline edit on `/profile` is sufficient
 - [ ] Add a toast library (`sonner` recommended) for action feedback (approve/reject, copy link, save)
 - [ ] Add loading skeletons for plan list and plan detail
+- [ ] Run plan_items policy SQL fix in Supabase to re-enable cost per person on home page cards
 
 ### 5. Polish Pass
 - [ ] Test mobile layout on all key pages (home, plan detail, plan creation)

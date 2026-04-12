@@ -22,6 +22,7 @@ export type Plan = {
   title: string
   description: string
   itinerary: string
+  start_date: string | null
   status: 'draft' | 'active' | 'closed'
   join_token: string
   join_approval: boolean

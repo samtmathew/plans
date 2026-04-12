@@ -5,42 +5,23 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import type { Plan } from '@/types'
 
+const PLAN_SELECT = `
+  *,
+  organiser:profiles!organiser_id(*),
+  attendees:plan_attendees(*, profile:profiles!user_id(*))
+`
+
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Fetch plans where user is organiser or attendee
-  // (initial broad fetch unused — see simpler approach below)
-  await supabase
+  const { data: organiserPlans, error: organiserError } = await supabase
     .from('plans')
-    .select(`
-      *,
-      organiser:profiles!organiser_id(*),
-      attendees:plan_attendees(
-        *,
-        profile:profiles(*)
-      ),
-      items:plan_items(*)
-    `)
-    .or(
-      `organiser_id.eq.${user!.id},id.in.(${
-        // subquery workaround: fetch attendee plan_ids first
-        'select:plan_id'
-      })`
-    )
-    .order('updated_at', { ascending: false })
-
-  // Simpler approach: fetch organiser plans + attendee plans separately
-  const { data: organiserPlans } = await supabase
-    .from('plans')
-    .select(`
-      *,
-      organiser:profiles!organiser_id(*),
-      attendees:plan_attendees(*, profile:profiles(*)),
-      items:plan_items(*)
-    `)
+    .select(PLAN_SELECT)
     .eq('organiser_id', user!.id)
     .order('updated_at', { ascending: false })
+
+  if (organiserError) console.error('organiserPlans error:', organiserError.message)
 
   const { data: attendeeRows } = await supabase
     .from('plan_attendees')
@@ -53,24 +34,20 @@ export default async function HomePage() {
 
   let attendeePlans: Plan[] = []
   if (attendeePlanIds.length > 0) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('plans')
-      .select(`
-        *,
-        organiser:profiles!organiser_id(*),
-        attendees:plan_attendees(*, profile:profiles(*)),
-        items:plan_items(*)
-      `)
+      .select(PLAN_SELECT)
       .in('id', attendeePlanIds)
       .order('updated_at', { ascending: false })
+    if (error) console.error('attendeePlans error:', error.message)
     attendeePlans = (data ?? []) as Plan[]
   }
 
-  // Merge + deduplicate + sort
   const allPlans = [
     ...(organiserPlans ?? []),
     ...attendeePlans,
   ] as Plan[]
+
   const seen = new Set<string>()
   const uniquePlans = allPlans.filter((p) => {
     if (seen.has(p.id)) return false
@@ -98,7 +75,7 @@ export default async function HomePage() {
           ctaHref="/plans/new"
         />
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           {uniquePlans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} currentUserId={user!.id} />
           ))}

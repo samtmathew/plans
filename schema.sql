@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS plans (
   title           TEXT NOT NULL,
   description     TEXT NOT NULL,
   itinerary       TEXT NOT NULL,
+  start_date      DATE,
   status          TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'closed')),
   join_token      UUID UNIQUE DEFAULT uuid_generate_v4() NOT NULL,
   join_approval   BOOLEAN NOT NULL DEFAULT TRUE,
@@ -133,6 +134,29 @@ CREATE POLICY "profiles: own write"
   USING (auth.uid() = id);
 
 
+-- ---- RLS helper functions (SECURITY DEFINER bypasses RLS in subqueries) ----
+
+-- Returns true if the current user is the organiser of the given plan.
+-- Must bypass RLS to avoid recursion: plan_attendees policies query plans,
+-- and plans: attendee read queries plan_attendees.
+CREATE OR REPLACE FUNCTION public.is_plan_organiser(p_plan_id UUID)
+RETURNS BOOLEAN LANGUAGE SQL SECURITY DEFINER SET search_path = public STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM plans WHERE id = p_plan_id AND organiser_id = auth.uid()
+  );
+$$;
+
+-- Returns true if the current user is an approved attendee of the given plan.
+-- Must bypass RLS to avoid self-referential recursion in plan_attendees policies.
+CREATE OR REPLACE FUNCTION public.is_approved_plan_attendee(p_plan_id UUID)
+RETURNS BOOLEAN LANGUAGE SQL SECURITY DEFINER SET search_path = public STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM plan_attendees
+    WHERE plan_id = p_plan_id AND user_id = auth.uid() AND status = 'approved'
+  );
+$$;
+
+
 -- ---- plans ----
 
 -- Organiser has full access to their own plans
@@ -143,14 +167,7 @@ CREATE POLICY "plans: organiser all"
 -- Approved attendees can read plans they are part of
 CREATE POLICY "plans: attendee read"
   ON plans FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM plan_attendees
-      WHERE plan_id = plans.id
-        AND user_id = auth.uid()
-        AND status = 'approved'
-    )
-  );
+  USING (public.is_approved_plan_attendee(plans.id));
 
 -- Anyone can read a plan by its join token (for the public join page preview)
 CREATE POLICY "plans: join token read"
@@ -190,15 +207,11 @@ CREATE POLICY "plan_items: organiser write"
 -- ---- plan_attendees ----
 
 -- Organiser has full access to all attendees on their plans
+-- Uses is_plan_organiser() to avoid recursion: querying plans directly here
+-- would trigger plans: attendee read → plan_attendees → loop.
 CREATE POLICY "plan_attendees: organiser all"
   ON plan_attendees FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM plans
-      WHERE id = plan_attendees.plan_id
-        AND organiser_id = auth.uid()
-    )
-  );
+  USING (public.is_plan_organiser(plan_attendees.plan_id));
 
 -- Each attendee can read their own row
 CREATE POLICY "plan_attendees: own row read"
@@ -206,16 +219,12 @@ CREATE POLICY "plan_attendees: own row read"
   USING (user_id = auth.uid());
 
 -- Approved attendees can read other approved attendees on the same plan
+-- Uses is_approved_plan_attendee() to avoid self-referential recursion.
 CREATE POLICY "plan_attendees: approved attendees read approved"
   ON plan_attendees FOR SELECT
   USING (
     status = 'approved'
-    AND EXISTS (
-      SELECT 1 FROM plan_attendees pa2
-      WHERE pa2.plan_id = plan_attendees.plan_id
-        AND pa2.user_id = auth.uid()
-        AND pa2.status = 'approved'
-    )
+    AND public.is_approved_plan_attendee(plan_attendees.plan_id)
   );
 
 

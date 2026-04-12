@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { UserAvatar } from '@/components/common/Avatar'
+import { CalendarDays, Users } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge'
-import { Users } from 'lucide-react'
+import { calcEstimatedPerPerson } from '@/lib/utils/cost'
+import { formatCurrency } from '@/lib/utils/format'
+import { cn } from '@/lib/utils'
 import type { Plan } from '@/types'
 
 interface PlanCardProps {
@@ -10,44 +11,68 @@ interface PlanCardProps {
   currentUserId: string
 }
 
+const statusStrip: Record<string, string> = {
+  active: 'bg-green-400',
+  draft:  'bg-zinc-300',
+  closed: 'bg-zinc-400',
+}
+
+function formatShortDate(dateStr: string): string {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export function PlanCard({ plan, currentUserId }: PlanCardProps) {
   const isOrganiser = plan.organiser_id === currentUserId
-  const approvedCount =
-    plan.attendees?.filter((a) => a.status === 'approved').length ?? 0
+  const approvedCount = plan.attendees?.filter((a) => a.status === 'approved').length ?? 0
+  const costPerPerson = calcEstimatedPerPerson(plan.items ?? [], approvedCount)
 
   return (
     <Link href={`/plans/${plan.id}`} className="block">
-      <Card className="hover:bg-muted/30 transition-colors">
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold leading-snug">{plan.title}</h3>
-            <div className="flex gap-1.5 shrink-0">
-              <StatusBadge status={plan.status} />
-              <StatusBadge status={isOrganiser ? 'organiser' : 'attendee'} />
-            </div>
-          </div>
-          <p className="text-sm text-muted-foreground line-clamp-2">{plan.description}</p>
-        </CardHeader>
+      <div className="rounded-xl border bg-card overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-150">
+        {/* Status colour strip */}
+        <div className={cn('h-1', statusStrip[plan.status] ?? 'bg-zinc-300')} />
 
-        <CardContent className="pt-0">
-          <div className="flex items-center justify-between">
-            {plan.organiser && (
-              <div className="flex items-center gap-2">
-                <UserAvatar
-                  url={plan.organiser.avatar_url}
-                  name={plan.organiser.name}
-                  size="sm"
-                />
-                <span className="text-xs text-muted-foreground">{plan.organiser.name}</span>
+        <div className="p-3 space-y-2">
+          {/* Title */}
+          <h3 className="font-semibold text-sm leading-snug line-clamp-2">{plan.title}</h3>
+
+          {/* Date + cost */}
+          <div className="space-y-1">
+            {plan.start_date && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarDays className="h-3 w-3 shrink-0" />
+                <span>{formatShortDate(plan.start_date)}</span>
               </div>
             )}
-            <div className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
-              <Users className="h-3.5 w-3.5" />
+            {costPerPerson > 0 && (
+              <p className="text-xs font-medium">
+                {formatCurrency(costPerPerson)}
+                <span className="font-normal text-muted-foreground"> /person</span>
+              </p>
+            )}
+          </div>
+
+          {/* Description */}
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            {plan.description}
+          </p>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-0.5">
+            <StatusBadge
+              status={isOrganiser ? 'organiser' : 'attendee'}
+              className="text-[10px] h-4 px-1.5"
+            />
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Users className="h-3 w-3" />
               <span>{approvedCount}</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   )
 }

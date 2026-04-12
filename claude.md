@@ -115,6 +115,17 @@
 
 ---
 
+## Testing Protocol
+- After every bug fix, start the dev server and visually verify the fix on localhost
+- Do not report a bug as fixed until you have confirmed it yourself in the browser
+- If the fix didn't work, iterate and test again without waiting for me
+- Only report back when the bug is confirmed fixed or you are genuinely stuck
+
+## Dev Environment
+- Dev server: `npm run dev`
+- Local URL: http://localhost:3000
+- To verify a fix, always run the dev server and check the relevant page
+
 ## How to Run
 
 ```bash

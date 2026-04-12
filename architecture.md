@@ -100,6 +100,7 @@ organiser_id    uuid (FK → profiles.id)
 title           text
 description     text
 itinerary       text
+start_date      date          (optional)
 status          text          CHECK IN ('draft', 'active', 'closed')
 join_token      uuid          UNIQUE (generated on creation)
 join_approval   boolean       DEFAULT true
@@ -135,6 +136,14 @@ created_at      timestamp
 
 ## Row Level Security (RLS) Policies
 
+Two SECURITY DEFINER helper functions break circular references between `plans` and `plan_attendees` policies:
+
+```sql
+-- Helpers (bypass RLS to avoid recursion)
+public.is_plan_organiser(p_plan_id UUID) → boolean
+public.is_approved_plan_attendee(p_plan_id UUID) → boolean
+```
+
 ```sql
 -- profiles
 CREATE POLICY "public read"  ON profiles FOR SELECT USING (true);
@@ -142,33 +151,29 @@ CREATE POLICY "own write"    ON profiles FOR ALL    USING (auth.uid() = id);
 
 -- plans
 CREATE POLICY "organiser all"  ON plans FOR ALL    USING (organiser_id = auth.uid());
-CREATE POLICY "attendee read"  ON plans FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM plan_attendees
-    WHERE plan_id = plans.id AND user_id = auth.uid() AND status = 'approved'
-  )
-);
+CREATE POLICY "attendee read"  ON plans FOR SELECT USING (public.is_approved_plan_attendee(plans.id));
 CREATE POLICY "join token read" ON plans FOR SELECT USING (join_token IS NOT NULL);
 
 -- plan_items
 CREATE POLICY "attendee/organiser read" ON plan_items FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM plans p
-    LEFT JOIN plan_attendees pa ON pa.plan_id = p.id
-    WHERE p.id = plan_items.plan_id
-    AND (p.organiser_id = auth.uid() OR (pa.user_id = auth.uid() AND pa.status = 'approved'))
-  )
+  public.is_plan_organiser(plan_items.plan_id)
+  OR public.is_approved_plan_attendee(plan_items.plan_id)
 );
 CREATE POLICY "organiser write" ON plan_items FOR ALL USING (
-  EXISTS (SELECT 1 FROM plans WHERE id = plan_items.plan_id AND organiser_id = auth.uid())
+  public.is_plan_organiser(plan_items.plan_id)
 );
 
 -- plan_attendees
 CREATE POLICY "organiser all" ON plan_attendees FOR ALL USING (
-  EXISTS (SELECT 1 FROM plans WHERE id = plan_attendees.plan_id AND organiser_id = auth.uid())
+  public.is_plan_organiser(plan_attendees.plan_id)
 );
 CREATE POLICY "own row read"  ON plan_attendees FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "approved attendees read approved" ON plan_attendees FOR SELECT USING (
+  status = 'approved' AND public.is_approved_plan_attendee(plan_attendees.plan_id)
+);
 ```
+
+> **PostgREST FK hint:** `plan_attendees` has two FKs to `profiles` (`user_id` and `invited_by`). All queries embedding profiles from plan_attendees must use `profile:profiles!user_id(*)` to avoid the "more than one relationship" error.
 
 ---
 

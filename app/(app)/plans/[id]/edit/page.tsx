@@ -14,7 +14,7 @@ export default async function EditPlanPage({ params }: Props) {
 
   const { data: plan } = await supabase
     .from('plans')
-    .select('*, items:plan_items(*), attendees:plan_attendees(*, profile:profiles(*))')
+    .select('*, items:plan_items(*), attendees:plan_attendees(*, profile:profiles!user_id(*))')
     .eq('id', id)
     .single()
 

@@ -19,17 +19,18 @@ export default async function PlanDetailPage({ params }: Props) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: plan } = await supabase
+  const { data: plan, error: planError } = await supabase
     .from('plans')
     .select(`
       *,
       organiser:profiles!organiser_id(*),
-      attendees:plan_attendees(*, profile:profiles(*)),
+      attendees:plan_attendees(*, profile:profiles!user_id(*)),
       items:plan_items(*)
     `)
     .eq('id', id)
     .single()
 
+  if (planError) throw new Error(planError.message)
   if (!plan) notFound()
 
   const isOrganiser = plan.organiser_id === user!.id
