@@ -364,3 +364,13 @@ CREATE POLICY "guest_attendees: organiser write"
     )
   );
 ```
+
+---
+
+## 2026-04-12 — guest_attendees role grants
+
+The initial migration was missing explicit role grants. Without these, RLS policies are defined but the `anon` and `authenticated` roles have no base permission to access the table — queries return silently empty.
+
+```sql
+GRANT ALL ON guest_attendees TO anon, authenticated;
+```
