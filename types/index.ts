@@ -35,6 +35,7 @@ export type Plan = {
   organiser?: Profile
   attendees?: PlanAttendee[]
   items?: PlanItem[]
+  end_date?: string | null
 }
 
 export type PlanItem = {

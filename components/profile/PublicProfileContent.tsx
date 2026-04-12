@@ -11,7 +11,6 @@ import { toast } from 'sonner'
 interface PublicProfileContentProps {
   profile: Profile
   currentUserId?: string
-  currentUserProfile?: Profile | null
 }
 
 function calculateAge(dateOfBirth: string | null): number | null {
@@ -37,7 +36,6 @@ function formatGender(gender: string | null): string {
 export function PublicProfileContent({
   profile,
   currentUserId,
-  currentUserProfile,
 }: PublicProfileContentProps) {
   const [isCollaborator, setIsCollaborator] = useState(false)
   const [isChecking, setIsChecking] = useState(true)

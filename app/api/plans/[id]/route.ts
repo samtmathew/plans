@@ -28,6 +28,47 @@ export async function GET(_request: Request, { params }: Params) {
   return NextResponse.json({ data, error: null })
 }
 
+export async function PATCH(request: Request, { params }: Params) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ data: null, error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Check organiser
+  const { data: plan } = await supabase
+    .from('plans')
+    .select('organiser_id')
+    .eq('id', id)
+    .single()
+
+  if (!plan || plan.organiser_id !== user.id) {
+    return NextResponse.json({ data: null, error: 'Forbidden' }, { status: 403 })
+  }
+
+  const body = await request.json()
+  const { status } = body
+
+  if (status && !['draft', 'active', 'closed'].includes(status)) {
+    return NextResponse.json({ data: null, error: 'Invalid status' }, { status: 400 })
+  }
+
+  const { data: updated, error } = await supabase
+    .from('plans')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ data: null, error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ data: updated, error: null })
+}
+
 export async function PUT(request: Request, { params }: Params) {
   const { id } = await params
   const supabase = await createClient()

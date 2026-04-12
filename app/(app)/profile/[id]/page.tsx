@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import type { Profile } from '@/types'
 import { PublicProfileContent } from '@/components/profile/PublicProfileContent'
 
@@ -23,22 +23,10 @@ export default async function PublicProfilePage({ params }: Props) {
 
   if (!profile) notFound()
 
-  // Fetch current user info for relationship checks
-  let currentUserProfile: Profile | null = null
-  if (currentUser) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single()
-    currentUserProfile = data
-  }
-
   return (
     <PublicProfileContent
       profile={profile as Profile}
       currentUserId={currentUser?.id}
-      currentUserProfile={currentUserProfile}
     />
   )
 }

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { AvatarUpload } from '@/components/profile/PhotoUpload'
-import { Pencil, Link as LinkIcon } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
