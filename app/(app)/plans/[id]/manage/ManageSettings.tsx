@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { CopyLink } from '@/components/common/CopyLink'
 import { AlertCircle } from 'lucide-react'
@@ -23,13 +24,24 @@ export function ManageSettings({ plan }: ManageSettingsProps) {
     }
 
     setLoading(true)
-    const response = await fetch(`/api/plans/${plan.id}`, {
-      method: 'DELETE',
-    })
-    setLoading(false)
+    try {
+      const response = await fetch(`/api/plans/${plan.id}`, {
+        method: 'DELETE',
+      })
 
-    if (response.ok) {
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to delete plan')
+        return
+      }
+
+      toast.success('Plan deleted')
       router.push('/home')
+    } catch (error) {
+      toast.error('An error occurred')
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import type { Plan } from '@/types'
 
@@ -15,27 +16,51 @@ export function ManageActions({ plan }: ManageActionsProps) {
 
   async function handlePublish() {
     setLoading(true)
-    const response = await fetch(`/api/plans/${plan.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'active' }),
-    })
-    setLoading(false)
-    if (response.ok) {
+    try {
+      const response = await fetch(`/api/plans/${plan.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'active' }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to publish plan')
+        return
+      }
+
+      toast.success('Plan published')
       router.refresh()
+    } catch (error) {
+      toast.error('An error occurred')
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
   }
 
   async function handleClose() {
     setLoading(true)
-    const response = await fetch(`/api/plans/${plan.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'closed' }),
-    })
-    setLoading(false)
-    if (response.ok) {
+    try {
+      const response = await fetch(`/api/plans/${plan.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'closed' }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to close plan')
+        return
+      }
+
+      toast.success('Plan closed')
       router.refresh()
+    } catch (error) {
+      toast.error('An error occurred')
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { UserAvatar } from '@/components/common/Avatar'
 import { Button } from '@/components/ui/button'
 import { Check, X } from 'lucide-react'
@@ -18,27 +19,51 @@ export function ManagePending({ planId, attendees }: ManagePendingProps) {
 
   async function handleApprove(attendeeId: string) {
     setLoading(true)
-    const response = await fetch(`/api/plans/${planId}/attendees/${attendeeId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved' }),
-    })
-    setLoading(false)
-    if (response.ok) {
+    try {
+      const response = await fetch(`/api/plans/${planId}/attendees/${attendeeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to approve attendee')
+        return
+      }
+
+      toast.success('Attendee approved')
       router.refresh()
+    } catch (error) {
+      toast.error('An error occurred')
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
   }
 
   async function handleReject(attendeeId: string) {
     setLoading(true)
-    const response = await fetch(`/api/plans/${planId}/attendees/${attendeeId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'rejected' }),
-    })
-    setLoading(false)
-    if (response.ok) {
+    try {
+      const response = await fetch(`/api/plans/${planId}/attendees/${attendeeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'rejected' }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to reject attendee')
+        return
+      }
+
+      toast.success('Attendee rejected')
       router.refresh()
+    } catch (error) {
+      toast.error('An error occurred')
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -17,7 +17,9 @@ export function ManageOverview({ plan }: ManageOverviewProps) {
   }))
 
   const galleryPhotos = plan.gallery_photos || []
-  const approvedCount = (plan.attendees || []).length
+  const approvedCount = (plan.attendees || []).filter(
+    a => a.status === 'approved'
+  ).length
 
   return (
     <div className="space-y-8">

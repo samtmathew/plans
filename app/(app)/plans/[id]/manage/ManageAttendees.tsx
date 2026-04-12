@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { UserAvatar } from '@/components/common/Avatar'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
@@ -18,12 +19,24 @@ export function ManageAttendees({ attendees }: ManageAttendeesProps) {
 
   async function handleRemove(attendeeId: string, planId: string) {
     setLoading(true)
-    const response = await fetch(`/api/plans/${planId}/attendees/${attendeeId}`, {
-      method: 'DELETE',
-    })
-    setLoading(false)
-    if (response.ok) {
+    try {
+      const response = await fetch(`/api/plans/${planId}/attendees/${attendeeId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to remove attendee')
+        return
+      }
+
+      toast.success('Attendee removed')
       router.refresh()
+    } catch (error) {
+      toast.error('An error occurred')
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
   }
 
