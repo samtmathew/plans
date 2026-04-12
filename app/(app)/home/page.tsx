@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getAuthenticatedUser } from '@/lib/auth'
 import { PlanCard } from '@/components/plan/PlanCard'
 import { EmptyState } from '@/components/common/EmptyState'
 import Link from 'next/link'
@@ -12,38 +13,32 @@ const PLAN_SELECT = `
 `
 
 export default async function HomePage() {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: organiserPlans, error: organiserError } = await supabase
-    .from('plans')
-    .select(PLAN_SELECT)
-    .eq('organiser_id', user!.id)
-    .is('deleted_at', null)
-    .order('updated_at', { ascending: false })
-
-  if (organiserError) console.error('organiserPlans error:', organiserError.message)
-
-  const { data: attendeeRows } = await supabase
-    .from('plan_attendees')
-    .select('plan_id')
-    .eq('user_id', user!.id)
-    .eq('status', 'approved')
-    .neq('role', 'organiser')
-
-  const attendeePlanIds = (attendeeRows ?? []).map((r) => r.plan_id)
-
-  let attendeePlans: Plan[] = []
-  if (attendeePlanIds.length > 0) {
-    const { data, error } = await supabase
+  const [organiserResult, attendeeResult] = await Promise.all([
+    supabase
       .from('plans')
       .select(PLAN_SELECT)
-      .in('id', attendeePlanIds)
+      .eq('organiser_id', user!.id)
       .is('deleted_at', null)
-      .order('updated_at', { ascending: false })
-    if (error) console.error('attendeePlans error:', error.message)
-    attendeePlans = (data ?? []) as Plan[]
-  }
+      .order('updated_at', { ascending: false }),
+
+    supabase
+      .from('plan_attendees')
+      .select(`plan:plans(${PLAN_SELECT})`)
+      .eq('user_id', user!.id)
+      .eq('status', 'approved')
+      .neq('role', 'organiser'),
+  ])
+
+  if (organiserResult.error) console.error('organiserPlans error:', organiserResult.error.message)
+  if (attendeeResult.error) console.error('attendeePlans error:', attendeeResult.error.message)
+
+  const organiserPlans = (organiserResult.data ?? []) as Plan[]
+  const attendeePlans = (attendeeResult.data ?? [])
+    .map((r) => (r.plan as unknown as Plan | null))
+    .filter((p): p is Plan => p !== null && p.deleted_at === null)
 
   const allPlans = [
     ...(organiserPlans ?? []),

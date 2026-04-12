@@ -38,6 +38,12 @@ export async function middleware(request: NextRequest) {
   const isApiRoute = pathname.startsWith('/api/')
 
   if (isPublicRoute || isJoinRoute || isApiRoute) {
+    // Skip landing page for already-authenticated users
+    if (pathname === '/' && user) {
+      const homeUrl = request.nextUrl.clone()
+      homeUrl.pathname = '/home'
+      return NextResponse.redirect(homeUrl)
+    }
     return supabaseResponse
   }
 
