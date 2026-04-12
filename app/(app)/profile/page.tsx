@@ -26,10 +26,11 @@ export default async function ProfilePage() {
       attendees:plan_attendees(
         id,
         status,
-        profile:profiles(id, name, avatar_url)
+        profile:profiles!user_id(id, name, avatar_url)
       )
     `)
     .eq('organiser_id', user.id)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   return <OwnProfileContent profile={profile as Profile} userId={user.id} plans={plans || []} />

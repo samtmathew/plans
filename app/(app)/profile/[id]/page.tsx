@@ -30,10 +30,11 @@ export default async function PublicProfilePage({ params }: Props) {
       attendees:plan_attendees(
         id,
         status,
-        profile:profiles(id, name, avatar_url)
+        profile:profiles!user_id(id, name, avatar_url)
       )
     `)
     .eq('organiser_id', id)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   return (
