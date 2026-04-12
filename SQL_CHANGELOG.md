@@ -315,3 +315,52 @@ CREATE POLICY "profile-photos: owner delete"
 ```
 
 **Why:** The `profile-photos` bucket was missing RLS policies, causing all upload attempts to fail with a 403. The `auth upload` policy allows authenticated users to insert files into the bucket.
+
+---
+
+## 2026-04-12 — guest_attendees table
+
+Adds `guest_attendees` table to support unauthenticated join requests from WhatsApp-shared links. Guests are identified by a UUID `guest_token` stored client-side in localStorage — no Supabase account required.
+
+**Why a separate table:** `plan_attendees.user_id` is a non-null FK to `profiles`. Making it nullable would require schema surgery and RLS rewrites. A separate table is clean, additive, and zero-risk to existing flows.
+
+### Run in Supabase dashboard SQL editor
+
+```sql
+-- Guest attendees: unauthenticated join requests identified by guest_token
+CREATE TABLE guest_attendees (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  plan_id      UUID NOT NULL REFERENCES plans(id) ON DELETE CASCADE,
+  guest_token  UUID UNIQUE DEFAULT uuid_generate_v4() NOT NULL,
+  name         TEXT NOT NULL,
+  email        TEXT,
+  status       TEXT NOT NULL DEFAULT 'pending'
+                 CHECK (status IN ('pending', 'approved', 'rejected')),
+  joined_via   TEXT NOT NULL DEFAULT 'public_join',
+  created_at   TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+ALTER TABLE guest_attendees ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX idx_guest_attendees_plan_id ON guest_attendees(plan_id);
+CREATE INDEX idx_guest_attendees_guest_token ON guest_attendees(guest_token);
+
+-- Anyone can submit a guest join request
+CREATE POLICY "guest_attendees: public insert"
+  ON guest_attendees FOR INSERT
+  WITH CHECK (true);
+
+-- Any row can be read (API code filters by guest_token — UUIDs are unguessable)
+CREATE POLICY "guest_attendees: public read"
+  ON guest_attendees FOR SELECT
+  USING (true);
+
+-- Organiser can update and delete guest rows on their plans
+CREATE POLICY "guest_attendees: organiser write"
+  ON guest_attendees FOR ALL
+  USING (
+    plan_id IN (
+      SELECT id FROM plans WHERE organiser_id = auth.uid()
+    )
+  );
+```
