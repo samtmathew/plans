@@ -49,11 +49,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Authenticated but visiting onboarding → let through
-  if (pathname === '/onboarding') {
-    return supabaseResponse
-  }
-
   // Authenticated — check if profile exists
   const { data: profile } = await supabase
     .from('profiles')
@@ -61,10 +56,22 @@ export async function middleware(request: NextRequest) {
     .eq('id', user.id)
     .single()
 
+  // No profile — redirect to onboarding
   if (!profile) {
+    // But if already on onboarding, let through
+    if (pathname === '/onboarding') {
+      return supabaseResponse
+    }
     const onboardingUrl = request.nextUrl.clone()
     onboardingUrl.pathname = '/onboarding'
     return NextResponse.redirect(onboardingUrl)
+  }
+
+  // Has profile — redirect away from onboarding if they try to visit
+  if (pathname === '/onboarding') {
+    const homeUrl = request.nextUrl.clone()
+    homeUrl.pathname = '/home'
+    return NextResponse.redirect(homeUrl)
   }
 
   return supabaseResponse
