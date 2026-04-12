@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const profileSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
-  bio: z.string().max(200, 'Bio must be 200 characters or less').nullable().optional(),
+  bio: z.string().max(500, 'Bio must be 500 characters or less').nullable().optional(),
   date_of_birth: z
     .string()
     .nullable()
