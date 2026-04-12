@@ -11,9 +11,9 @@ interface PlanCardProps {
 }
 
 const statusColors: Record<string, { bg: string; text: string }> = {
-  active: { bg: 'bg-green-100', text: 'text-green-700' },
-  draft: { bg: 'bg-slate-100', text: 'text-slate-700' },
-  closed: { bg: 'bg-slate-200', text: 'text-slate-800' },
+  active: { bg: 'bg-green-100', text: 'text-green-800' },
+  draft: { bg: 'bg-surface-container', text: 'text-on-surface-variant' },
+  closed: { bg: 'bg-surface-container', text: 'text-on-surface-variant' },
 }
 
 function formatShortDate(dateStr: string): string {
@@ -44,12 +44,12 @@ function AvatarStack({ plan }: { plan: Plan }) {
             url={attendee.profile?.avatar_url}
             name={attendee.profile?.name ?? 'Unknown'}
             size="sm"
-            className="ring-1 ring-card border border-background"
+            className="ring-1 ring-surface border border-surface"
           />
         </div>
       ))}
       {hiddenCount > 0 && (
-        <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center ml-1 text-xs font-headline font-semibold text-muted-foreground ring-1 ring-card">
+        <div className="h-7 w-7 rounded-full bg-surface-container flex items-center justify-center ml-1 text-xs font-headline font-semibold text-on-surface-variant ring-1 ring-surface">
           +{hiddenCount}
         </div>
       )}
@@ -64,10 +64,10 @@ export function PlanCard({ plan }: PlanCardProps) {
 
   return (
     <Link href={`/plans/${plan.id}`} className="block">
-      <div className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-all duration-200">
+      <div className="rounded-lg border border-outline-variant bg-surface overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all duration-200">
         {/* Cover Image */}
         {plan.cover_photo && (
-          <div className="relative h-36 w-full overflow-hidden bg-muted">
+          <div className="relative h-36 w-full overflow-hidden bg-surface-container">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={plan.cover_photo}
@@ -78,7 +78,7 @@ export function PlanCard({ plan }: PlanCardProps) {
             <div className="absolute top-3 right-3">
               <div
                 className={cn(
-                  'px-2 py-1 rounded-md text-xs font-semibold',
+                  'px-2 py-1 rounded text-xs font-headline font-bold uppercase tracking-widest',
                   statusColor.bg,
                   statusColor.text
                 )}
@@ -89,43 +89,43 @@ export function PlanCard({ plan }: PlanCardProps) {
           </div>
         )}
 
-        <div className="p-3 space-y-3">
+        <div className="p-4 space-y-3">
           {/* Title */}
-          <h3 className="font-headline text-lg font-bold leading-snug line-clamp-2 text-foreground">
+          <h3 className="font-headline text-lg font-bold leading-snug line-clamp-2 text-on-surface -tracking-[0.02em]">
             {plan.title}
           </h3>
 
           {/* Date + cost */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {plan.start_date && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                 <CalendarDays className="h-4 w-4 shrink-0" />
                 <span className="font-medium">{formatShortDate(plan.start_date)}</span>
               </div>
             )}
             {costPerPerson > 0 && (
-              <p className="text-sm font-semibold text-foreground">
+              <p className="text-sm font-semibold text-on-surface">
                 {formatCurrency(costPerPerson)}
-                <span className="font-normal text-muted-foreground text-xs"> per person</span>
+                <span className="font-normal text-on-surface-variant text-xs ml-1">per person</span>
               </p>
             )}
           </div>
 
           {/* Description */}
           {plan.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
               {plan.description}
             </p>
           )}
 
           {/* Footer - Attendees */}
-          <div className="flex items-center justify-between pt-1 border-t border-border">
+          <div className="flex items-center justify-between pt-2 border-t border-outline-variant">
             <div className="pt-2">
               <AvatarStack plan={plan} />
             </div>
             {!plan.cover_photo && (
               <div className="pt-2">
-                <div className={cn('px-2 py-1 rounded-md text-xs font-semibold', statusColor.bg, statusColor.text)}>
+                <div className={cn('px-2 py-1 rounded text-xs font-headline font-bold uppercase tracking-widest', statusColor.bg, statusColor.text)}>
                   {plan.status.charAt(0).toUpperCase() + plan.status.slice(1)}
                 </div>
               </div>

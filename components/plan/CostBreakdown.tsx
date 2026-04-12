@@ -58,26 +58,26 @@ export function CostBreakdown({
   return (
     <div className="space-y-4">
       {items.length === 0 && readOnly && (
-        <p className="text-sm text-muted-foreground">No cost items added.</p>
+        <p className="text-sm text-on-surface-variant">No cost items added.</p>
       )}
 
       {items.map((item, index) => (
-        <div key={index} className="space-y-2 p-3 border rounded-lg bg-muted/20">
+        <div key={index} className="space-y-2 p-4 border border-outline-variant rounded-lg bg-surface-container-low">
           {readOnly ? (
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
-                <p className="font-medium text-sm">{item.title}</p>
+                <p className="font-medium text-sm text-on-surface">{item.title}</p>
                 {item.description && (
-                  <p className="text-xs text-muted-foreground">{item.description}</p>
+                  <p className="text-xs text-on-surface-variant">{item.description}</p>
                 )}
               </div>
               <div className="text-right shrink-0">
-                <p className="font-medium text-sm">{formatCurrency(item.price)}</p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {item.pricing_type === 'per_head' ? 'Per head' : 'Group total'}
+                <p className="font-medium text-sm text-on-surface">{formatCurrency(item.price)}</p>
+                <p className="text-xs text-on-surface-variant font-headline font-bold uppercase tracking-widest">
+                  {item.pricing_type === 'per_head' ? 'Per head' : 'Group'}
                 </p>
                 {item.pricing_type === 'group' && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-on-surface-variant">
                     {approvedAttendeeCount > 0
                       ? `${formatCurrency(calcGroupItemPerPerson(item.price, approvedAttendeeCount))} / person`
                       : '— / person'}
@@ -117,14 +117,14 @@ export function CostBreakdown({
               </div>
 
               <div className="flex gap-2 items-center">
-                <div className="flex rounded-md border overflow-hidden text-sm">
+                <div className="flex rounded border border-outline-variant overflow-hidden text-sm">
                   <button
                     type="button"
                     onClick={() => updateItem(index, 'pricing_type', 'per_head')}
                     className={`px-3 py-1.5 transition-colors ${
                       item.pricing_type === 'per_head'
-                        ? 'bg-foreground text-background'
-                        : 'hover:bg-muted'
+                        ? 'bg-on-surface text-surface font-semibold'
+                        : 'hover:bg-surface-container text-on-surface-variant'
                     }`}
                   >
                     Per head
@@ -132,17 +132,17 @@ export function CostBreakdown({
                   <button
                     type="button"
                     onClick={() => updateItem(index, 'pricing_type', 'group')}
-                    className={`px-3 py-1.5 border-l transition-colors ${
+                    className={`px-3 py-1.5 border-l border-outline-variant transition-colors ${
                       item.pricing_type === 'group'
-                        ? 'bg-foreground text-background'
-                        : 'hover:bg-muted'
+                        ? 'bg-on-surface text-surface font-semibold'
+                        : 'hover:bg-surface-container text-on-surface-variant'
                     }`}
                   >
                     Group total
                   </button>
                 </div>
                 {item.pricing_type === 'group' && item.price > 0 && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-on-surface-variant">
                     {approvedAttendeeCount > 0
                       ? `→ ${formatCurrency(calcGroupItemPerPerson(item.price, approvedAttendeeCount))} / person`
                       : '→ add attendees to estimate'}
@@ -172,20 +172,20 @@ export function CostBreakdown({
       {items.length > 0 && (
         <>
           <Separator />
-          <div className="space-y-1.5 text-sm">
+          <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Per-head subtotal</span>
-              <span className="font-medium">{formatCurrency(perHeadTotal)}</span>
+              <span className="text-on-surface-variant">Per-head subtotal</span>
+              <span className="font-medium text-on-surface">{formatCurrency(perHeadTotal)}</span>
             </div>
             {hasGroupItems && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Group share (your split)</span>
-                <span className="font-medium">
+                <span className="text-on-surface-variant">Group share (your split)</span>
+                <span className="font-medium text-on-surface">
                   {approvedAttendeeCount > 0 ? formatCurrency(groupShareTotal) : '—'}
                 </span>
               </div>
             )}
-            <div className="flex justify-between font-semibold">
+            <div className="flex justify-between font-headline font-bold text-on-surface">
               <span>Estimated per person</span>
               <span>
                 {approvedAttendeeCount > 0 || !hasGroupItems
@@ -194,14 +194,14 @@ export function CostBreakdown({
               </span>
             </div>
             {approvedAttendeeCount > 0 && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-on-surface-variant">
                 Based on {approvedAttendeeCount}{' '}
                 {approvedAttendeeCount === 1 ? 'person' : 'people'}
                 {approvedAttendeeCount === 1 && ' — you&apos;re the only one so far'}
               </p>
             )}
             {approvedAttendeeCount === 0 && hasGroupItems && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-on-surface-variant">
                 Add attendees to see per-person cost for group items
               </p>
             )}

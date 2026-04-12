@@ -29,7 +29,7 @@ export function AttendeeList({
     <div className="space-y-4">
       {isOrganiser && pending.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">
+          <h4 className="text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant">
             Pending requests ({pending.length})
           </h4>
           {pending.map((attendee) => (
@@ -48,7 +48,7 @@ export function AttendeeList({
       {rest.length > 0 && (
         <div className="space-y-2">
           {isOrganiser && pending.length > 0 && (
-            <h4 className="text-sm font-medium text-muted-foreground">Members</h4>
+            <h4 className="text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant">Members</h4>
           )}
           {rest.map((attendee) => (
             <AttendeeRow
@@ -83,14 +83,14 @@ function AttendeeRow({
   if (!profile) return null
 
   return (
-    <div className="flex items-center gap-3 py-1">
+    <div className="flex items-center gap-3 py-2 px-2 rounded hover:bg-surface-container-low transition-colors">
       <Link href={`/profile/${profile.id}`} className="shrink-0">
         <UserAvatar url={profile.avatar_url} name={profile.name} size="sm" />
       </Link>
       <div className="flex-1 min-w-0">
         <Link
           href={`/profile/${profile.id}`}
-          className="text-sm font-medium hover:underline truncate block"
+          className="text-sm font-medium text-on-surface hover:underline truncate block"
         >
           {profile.name}
         </Link>

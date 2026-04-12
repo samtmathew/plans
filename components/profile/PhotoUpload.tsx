@@ -77,9 +77,9 @@ function CropDialog({ open, imageSrc, shape, onConfirm, onCancel }: CropDialogPr
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Crop image</DialogTitle>
+          <DialogTitle className="font-headline text-on-surface">Crop image</DialogTitle>
         </DialogHeader>
-        <div className="relative h-72 bg-muted rounded-lg overflow-hidden">
+        <div className="relative h-72 bg-surface-container rounded-lg overflow-hidden">
           <Cropper
             image={imageSrc}
             crop={crop}
@@ -194,7 +194,7 @@ export function AvatarUpload({ userId, currentUrl, name, onUpload }: AvatarUploa
         onConfirm={handleCropConfirm}
         onCancel={handleCropCancel}
       />
-      {uploading && <p className="text-xs text-muted-foreground">Uploading…</p>}
+      {uploading && <p className="text-xs text-on-surface-variant">Uploading…</p>}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
@@ -311,7 +311,7 @@ export function PhotosUpload({ userId, currentUrls, onUpload }: PhotosUploadProp
         onCancel={handleCropCancel}
       />
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <p className="text-xs text-muted-foreground">Up to 3 photos</p>
+      <p className="text-xs text-on-surface-variant">Up to 3 photos</p>
     </div>
   )
 }

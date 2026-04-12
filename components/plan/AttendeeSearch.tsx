@@ -64,23 +64,23 @@ export function AttendeeSearch({
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-on-surface-variant pointer-events-none" />
         <Input
           value={query}
           onChange={handleChange}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder="Search by name…"
-          className="pl-9"
+          className="pl-6 border-0 border-b border-primary bg-transparent text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:ring-0"
         />
       </div>
 
       {open && (
-        <div className="absolute z-50 top-full mt-1 w-full bg-popover border rounded-md shadow-md overflow-hidden">
+        <div className="absolute z-50 top-full mt-2 w-full bg-surface border border-outline-variant rounded-lg shadow-md overflow-hidden">
           {loading && (
-            <div className="px-3 py-2 text-sm text-muted-foreground">Searching…</div>
+            <div className="px-4 py-2 text-sm text-on-surface-variant">Searching…</div>
           )}
           {!loading && results.length === 0 && (
-            <div className="px-3 py-2 text-sm text-muted-foreground">No users found</div>
+            <div className="px-4 py-2 text-sm text-on-surface-variant">No users found</div>
           )}
           {!loading &&
             results.map((profile) => {
@@ -91,18 +91,18 @@ export function AttendeeSearch({
                   type="button"
                   disabled={alreadyAdded}
                   onClick={() => !alreadyAdded && handleSelect(profile)}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-surface-container-low disabled:opacity-50 disabled:cursor-not-allowed text-left border-b border-outline-variant last:border-0"
                 >
                   <UserAvatar url={profile.avatar_url} name={profile.name} size="sm" />
                   <div className="min-w-0">
-                    <p className="font-medium truncate">{profile.name}</p>
+                    <p className="font-medium text-on-surface truncate">{profile.name}</p>
                     {profile.bio && (
-                      <p className="text-xs text-muted-foreground truncate">{profile.bio}</p>
+                      <p className="text-xs text-on-surface-variant truncate">{profile.bio}</p>
                     )}
                   </div>
                   {alreadyAdded && (
-                    <span className="ml-auto text-xs text-muted-foreground shrink-0">
-                      Already added
+                    <span className="ml-auto text-xs text-on-surface-variant shrink-0">
+                      Added
                     </span>
                   )}
                 </button>

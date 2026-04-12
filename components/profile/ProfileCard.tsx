@@ -12,9 +12,9 @@ export function ProfileCard({ profile, linkable = true }: ProfileCardProps) {
     <div className="flex items-center gap-3">
       <UserAvatar url={profile.avatar_url} name={profile.name} size="md" />
       <div className="min-w-0">
-        <p className="text-sm font-medium truncate">{profile.name}</p>
+        <p className="text-sm font-medium text-on-surface truncate">{profile.name}</p>
         {profile.bio && (
-          <p className="text-xs text-muted-foreground truncate">{profile.bio}</p>
+          <p className="text-xs text-on-surface-variant truncate">{profile.bio}</p>
         )}
       </div>
     </div>
