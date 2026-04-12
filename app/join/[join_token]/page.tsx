@@ -25,7 +25,7 @@ export default async function JoinPage({ params }: Props) {
     .eq('join_token', join_token)
     .single()
 
-  if (!plan) {
+  if (!plan || plan.deleted_at) {
     return (
       <main className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center space-y-3">

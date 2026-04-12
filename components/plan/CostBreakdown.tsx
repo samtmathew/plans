@@ -16,7 +16,7 @@ import type { PlanItemFormValues } from '@/lib/validations/plan'
 interface CostBreakdownProps {
   items: PlanItemFormValues[]
   approvedAttendeeCount: number
-  onChange: (items: PlanItemFormValues[]) => void
+  onChange?: (items: PlanItemFormValues[]) => void
   readOnly?: boolean
 }
 
@@ -27,7 +27,7 @@ export function CostBreakdown({
   readOnly = false,
 }: CostBreakdownProps) {
   function addItem() {
-    onChange([
+    onChange?.([
       ...items,
       {
         title: '',
@@ -40,14 +40,14 @@ export function CostBreakdown({
   }
 
   function removeItem(index: number) {
-    onChange(items.filter((_, i) => i !== index))
+    onChange?.(items.filter((_, i) => i !== index))
   }
 
   function updateItem(index: number, field: keyof PlanItemFormValues, value: unknown) {
     const updated = items.map((item, i) =>
       i === index ? { ...item, [field]: value } : item
     )
-    onChange(updated)
+    onChange?.(updated)
   }
 
   const perHeadTotal = calcPerHeadTotal(items as never)

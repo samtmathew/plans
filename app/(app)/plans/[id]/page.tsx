@@ -8,6 +8,7 @@ import { CopyLink } from '@/components/common/CopyLink'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { UserAvatar } from '@/components/common/Avatar'
 import { AttendeeActions } from './AttendeeActions'
+import { DeletePlanButton } from './DeletePlanButton'
 import type { Plan, PlanAttendee } from '@/types'
 
 interface Props {
@@ -31,7 +32,7 @@ export default async function PlanDetailPage({ params }: Props) {
     .single()
 
   if (planError) throw new Error(planError.message)
-  if (!plan) notFound()
+  if (!plan || plan.deleted_at) notFound()
 
   const isOrganiser = plan.organiser_id === user!.id
   const myAttendee = (plan.attendees as PlanAttendee[]).find(
@@ -40,7 +41,6 @@ export default async function PlanDetailPage({ params }: Props) {
   const isApprovedMember = isOrganiser || myAttendee?.status === 'approved'
 
   if (!isOrganiser && !myAttendee) {
-    // Not a member — send to join page
     redirect(`/join/${plan.join_token}`)
   }
 
@@ -52,9 +52,18 @@ export default async function PlanDetailPage({ params }: Props) {
   const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL}/join/${plan.join_token}`
   const avatarStackAttendees = approvedAttendees.slice(0, 7)
   const extraCount = Math.max(0, approvedCount - 7)
+  const galleryPhotos: string[] = plan.gallery_photos ?? []
 
   return (
     <div className="space-y-8 pb-16">
+      {/* Cover photo */}
+      {plan.cover_photo && (
+        <div className="w-full aspect-square rounded-xl overflow-hidden -mx-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={plan.cover_photo} alt={plan.title} className="w-full h-full object-cover" />
+        </div>
+      )}
+
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-3">
@@ -62,9 +71,12 @@ export default async function PlanDetailPage({ params }: Props) {
           <div className="flex gap-1.5 shrink-0">
             <StatusBadge status={plan.status} />
             {isOrganiser && (
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/plans/${id}/edit`}>Edit</Link>
-              </Button>
+              <>
+                <Button asChild size="sm" variant="outline">
+                  <Link href={`/plans/${id}/edit`}>Edit</Link>
+                </Button>
+                <DeletePlanButton planId={id} />
+              </>
             )}
           </div>
         </div>
@@ -109,10 +121,27 @@ export default async function PlanDetailPage({ params }: Props) {
                 sort_order: i.sort_order,
               }))}
               approvedAttendeeCount={approvedCount}
-              onChange={() => {}}
               readOnly
             />
           </section>
+
+          {/* Gallery */}
+          {galleryPhotos.length > 0 && (
+            <>
+              <Separator />
+              <section className="space-y-3">
+                <h2 className="font-semibold">Gallery</h2>
+                <div className="grid grid-cols-3 gap-2">
+                  {galleryPhotos.map((url, i) => (
+                    <div key={i} className="aspect-square rounded-lg overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
 
           <Separator />
 
@@ -147,7 +176,7 @@ export default async function PlanDetailPage({ params }: Props) {
               </div>
             )}
 
-            {/* Attendee list + actions (client component for approve/reject) */}
+            {/* Attendee list + actions */}
             <AttendeeActions
               plan={plan as unknown as Plan}
               isOrganiser={isOrganiser}

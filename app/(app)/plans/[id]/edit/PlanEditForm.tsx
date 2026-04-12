@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createPlanSchema, type CreatePlanFormValues, type PlanItemFormValues } from '@/lib/validations/plan'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { CostBreakdown } from '@/components/plan/CostBreakdown'
+import { CoverPhotoUpload } from '@/components/plan/CoverPhotoUpload'
+import { GalleryUpload } from '@/components/plan/GalleryUpload'
 import { cn } from '@/lib/utils'
 import type { Plan, PlanItem } from '@/types'
 
@@ -20,6 +23,7 @@ interface PlanEditFormProps {
 
 export function PlanEditForm({ plan }: PlanEditFormProps) {
   const router = useRouter()
+  const [userId, setUserId] = useState<string | null>(null)
   const [items, setItems] = useState<PlanItemFormValues[]>(
     (plan.items ?? []).map((i: PlanItem) => ({
       id: i.id,
@@ -30,7 +34,13 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
       sort_order: i.sort_order,
     }))
   )
+  const [coverPhoto, setCoverPhoto] = useState<string | null>(plan.cover_photo ?? null)
+  const [galleryPhotos, setGalleryPhotos] = useState<string[]>(plan.gallery_photos ?? [])
   const [error, setError] = useState<string | null>(null)
+
+  if (!userId) {
+    createClient().auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
+  }
 
   const approvedCount =
     plan.attendees?.filter((a) => a.status === 'approved').length ?? 0
@@ -56,14 +66,19 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
     const res = await fetch(`/api/plans/${plan.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...values, items }),
+      body: JSON.stringify({
+        ...values,
+        items,
+        cover_photo: coverPhoto,
+        gallery_photos: galleryPhotos,
+      }),
     })
     const json = await res.json()
     if (json.error) {
       setError(json.error)
       return
     }
-    router.push(`/plans/${plan.id}`)
+    router.push('/home')
     router.refresh()
   }
 
@@ -73,10 +88,23 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
       <section className="space-y-4">
         <h2 className="font-medium">Basics</h2>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="title">Title *</Label>
-          <Input id="title" maxLength={80} {...register('title')} />
-          {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+        {/* Title + Cover photo side by side */}
+        <div className="flex gap-4 items-start">
+          <div className="flex-1 space-y-1.5">
+            <Label htmlFor="title">Title *</Label>
+            <Input id="title" maxLength={80} {...register('title')} />
+            {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+          </div>
+          <div className="space-y-1.5 shrink-0">
+            <Label>Cover photo</Label>
+            {userId && (
+              <CoverPhotoUpload
+                userId={userId}
+                currentUrl={coverPhoto}
+                onChange={setCoverPhoto}
+              />
+            )}
+          </div>
         </div>
 
         <div className="space-y-1.5">
@@ -107,6 +135,21 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
           approvedAttendeeCount={approvedCount}
           onChange={setItems}
         />
+      </section>
+
+      <Separator />
+
+      {/* Gallery */}
+      <section className="space-y-4">
+        <h2 className="font-medium">Gallery</h2>
+        <p className="text-sm text-muted-foreground">Add photos relevant to the plan — destination, venue, vibe.</p>
+        {userId && (
+          <GalleryUpload
+            userId={userId}
+            currentUrls={galleryPhotos}
+            onChange={setGalleryPhotos}
+          />
+        )}
       </section>
 
       <Separator />

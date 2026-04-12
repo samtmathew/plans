@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { CostBreakdown } from '@/components/plan/CostBreakdown'
+import { CoverPhotoUpload } from '@/components/plan/CoverPhotoUpload'
+import { GalleryUpload } from '@/components/plan/GalleryUpload'
 import { AttendeeSearch } from '@/components/plan/AttendeeSearch'
 import { UserAvatar } from '@/components/common/Avatar'
 import { X } from 'lucide-react'
@@ -22,6 +24,8 @@ export default function NewPlanPage() {
   const [items, setItems] = useState<PlanItemFormValues[]>([])
   const [attendees, setAttendees] = useState<Profile[]>([])
   const [joinApproval, setJoinApproval] = useState(true)
+  const [coverPhoto, setCoverPhoto] = useState<string | null>(null)
+  const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
 
@@ -58,6 +62,8 @@ export default function NewPlanPage() {
         items,
         attendee_ids: attendees.map((a) => a.id),
         join_approval: joinApproval,
+        cover_photo: coverPhoto,
+        gallery_photos: galleryPhotos,
       }),
     })
     const json = await res.json()
@@ -80,16 +86,31 @@ export default function NewPlanPage() {
         {/* Section 1 — Basics */}
         <section className="space-y-4">
           <h2 className="font-medium">Basics</h2>
-          <div className="space-y-1.5">
-            <Label htmlFor="title">Title *</Label>
-            <Input
-              id="title"
-              maxLength={80}
-              placeholder="e.g. Weekend in Lisbon"
-              {...register('title')}
-            />
-            {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+
+          {/* Title + Cover photo side by side */}
+          <div className="flex gap-4 items-start">
+            <div className="flex-1 space-y-1.5">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                maxLength={80}
+                placeholder="e.g. Weekend in Lisbon"
+                {...register('title')}
+              />
+              {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+            </div>
+            <div className="space-y-1.5 shrink-0">
+              <Label>Cover photo</Label>
+              {userId && (
+                <CoverPhotoUpload
+                  userId={userId}
+                  currentUrl={coverPhoto}
+                  onChange={setCoverPhoto}
+                />
+              )}
+            </div>
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="start_date">Date</Label>
             <Input
@@ -128,14 +149,29 @@ export default function NewPlanPage() {
           <h2 className="font-medium">Cost breakdown</h2>
           <CostBreakdown
             items={items}
-            approvedAttendeeCount={attendees.length + 1} // +1 for organiser
+            approvedAttendeeCount={attendees.length + 1}
             onChange={setItems}
           />
         </section>
 
         <Separator />
 
-        {/* Section 3 — Attendees */}
+        {/* Section 3 — Gallery */}
+        <section className="space-y-4">
+          <h2 className="font-medium">Gallery</h2>
+          <p className="text-sm text-muted-foreground">Add photos relevant to the plan — destination, venue, vibe.</p>
+          {userId && (
+            <GalleryUpload
+              userId={userId}
+              currentUrls={galleryPhotos}
+              onChange={setGalleryPhotos}
+            />
+          )}
+        </section>
+
+        <Separator />
+
+        {/* Section 4 — Attendees */}
         <section className="space-y-4">
           <h2 className="font-medium">Attendees</h2>
           {userId && (
@@ -185,7 +221,7 @@ export default function NewPlanPage() {
 
         <Separator />
 
-        {/* Section 4 — Publish */}
+        {/* Section 5 — Publish */}
         <section className="space-y-4">
           <h2 className="font-medium">Review &amp; publish</h2>
           {error && (

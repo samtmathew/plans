@@ -19,6 +19,7 @@ export default async function HomePage() {
     .from('plans')
     .select(PLAN_SELECT)
     .eq('organiser_id', user!.id)
+    .is('deleted_at', null)
     .order('updated_at', { ascending: false })
 
   if (organiserError) console.error('organiserPlans error:', organiserError.message)
@@ -38,6 +39,7 @@ export default async function HomePage() {
       .from('plans')
       .select(PLAN_SELECT)
       .in('id', attendeePlanIds)
+      .is('deleted_at', null)
       .order('updated_at', { ascending: false })
     if (error) console.error('attendeePlans error:', error.message)
     attendeePlans = (data ?? []) as Plan[]

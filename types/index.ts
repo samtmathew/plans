@@ -28,6 +28,9 @@ export type Plan = {
   join_approval: boolean
   created_at: string
   updated_at: string
+  deleted_at: string | null
+  cover_photo: string | null
+  gallery_photos: string[]
   // Joined relations (populated when fetched with select)
   organiser?: Profile
   attendees?: PlanAttendee[]

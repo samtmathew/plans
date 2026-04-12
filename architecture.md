@@ -50,6 +50,7 @@ All routes live under `/app/api/`. All responses follow: `{ data: T | null, erro
 | POST | `/api/plans` | Create a new plan | Required |
 | GET | `/api/plans/[id]` | Get plan details (checks attendee access) | Required |
 | PUT | `/api/plans/[id]` | Update plan | Organiser only |
+| DELETE | `/api/plans/[id]` | Soft-delete plan (sets `deleted_at`) | Organiser only |
 
 ### Plan Items
 
@@ -106,6 +107,9 @@ join_token      uuid          UNIQUE (generated on creation)
 join_approval   boolean       DEFAULT true
 created_at      timestamp
 updated_at      timestamp
+deleted_at      timestamp     (null = active; set on soft-delete)
+cover_photo     text          (public URL, stored in plan-covers bucket)
+gallery_photos  text[]        DEFAULT '{}' (public URLs, stored in plan-gallery bucket)
 ```
 
 ### `plan_items`
@@ -181,8 +185,10 @@ CREATE POLICY "approved attendees read approved" ON plan_attendees FOR SELECT US
 
 | Bucket | Access | Path Pattern | Description |
 |--------|--------|--------------|-------------|
-| `avatars` | Public | `avatars/{user_id}` | Single profile picture per user |
-| `profile-photos` | Public | `profile-photos/{user_id}/{1,2,3}` | Up to 3 additional photos per user |
+| `avatars` | Public | `{user_id}.{ext}` | Single profile picture per user |
+| `profile-photos` | Public | `{user_id}/{slot}.{ext}` | Up to 3 additional photos per user |
+| `plan-covers` | Public | `{user_id}/{timestamp}.{ext}` | One square cover photo per plan |
+| `plan-gallery` | Public | `{user_id}/{timestamp}-{random}.{ext}` | Multiple gallery photos per plan (up to 10) |
 
 ---
 

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### 2026-04-11 (session 2 — delete, media, edit fixes)
+- fix: `CostBreakdown` passed as a Server Component prop (`onChange={() => {}}`) caused "event handlers cannot be passed to Client Component" error on plan detail page — made `onChange` optional and removed the no-op prop
+- fix: plan edit `PUT` route was silently swallowing item insert errors and spreading old `id` fields onto re-inserted rows — strip `id` before insert, add error propagation for both delete and insert steps
+- fix: edit form redirected to plan detail after save instead of `/home` — now matches publish flow
+- feat: soft-delete plans — `DELETE /api/plans/[id]` sets `deleted_at` timestamp; plan is hidden from dashboard, 404 on direct URL, and blocked on join page; row preserved for history and compliance
+- feat: `DeletePlanButton` component — trash icon next to Edit with `AlertDialog` confirmation; only visible to organiser (`app/(app)/plans/[id]/DeletePlanButton.tsx`)
+- feat: cover photo upload — square 96×96 uploader inline with Title field in Basics section; stored in `plan-covers` bucket; displayed full-width at top of plan detail
+- feat: gallery upload — multi-image grid section between Cost breakdown and Attendees in create/edit forms; stored in `plan-gallery` bucket; rendered as 3-column grid on plan detail
+- feat: `CoverPhotoUpload` component (`components/plan/CoverPhotoUpload.tsx`)
+- feat: `GalleryUpload` component (`components/plan/GalleryUpload.tsx`)
+- feat: `SQL_CHANGELOG.md` — dated record of all schema changes, RLS policies, and storage policies
+- chore: add `alert-dialog` shadcn component (`components/ui/alert-dialog.tsx`)
+- chore: update `claude.md` with SQL documentation rule and reference to `SQL_CHANGELOG.md`
+- chore: `schema.sql` updated — added `deleted_at TIMESTAMPTZ`, `cover_photo TEXT`, `gallery_photos TEXT[]` to `plans` table
+- chore: `types/index.ts` updated — `Plan` type includes `deleted_at`, `cover_photo`, `gallery_photos`
+- chore: `lib/validations/plan.ts` updated — `createPlanSchema` includes `cover_photo` and `gallery_photos`
+- chore: home page queries filter `deleted_at IS NULL` for both organiser and attendee plan lists
+
 ### 2026-04-11
 - fix: add `forwardRef` to `components/ui/textarea.tsx` so React Hook Form can read its value (was returning `undefined`, causing Zod validation errors on description and itinerary fields)
 - fix: add complete `defaultValues` to plan creation form (`title`, `description`, `itinerary`, `start_date`) to prevent Zod v4 rejecting `undefined` on uncontrolled fields

@@ -146,6 +146,7 @@ Option A — Cloud (recommended for hackathon):
 1. Create a project at supabase.com
 2. Copy URL and anon key into `.env.local`
 3. Run `schema.sql` in the Supabase dashboard SQL editor
+4. Apply any subsequent migrations from `SQL_CHANGELOG.md`
 
 Option B — Local:
 ```bash
@@ -153,6 +154,12 @@ npx supabase init
 npx supabase start
 npx supabase db push
 ```
+
+### SQL Documentation
+
+**All schema changes, migrations, RLS policies, and storage policies are recorded in [`SQL_CHANGELOG.md`](./SQL_CHANGELOG.md).**
+
+> **Rule:** Any time a major SQL statement is introduced — new table, ALTER TABLE, new RLS policy, storage policy, or new index — append a dated entry to `SQL_CHANGELOG.md` before considering the task complete. Include the SQL itself, what it does, and why it was added.
 
 ---
 

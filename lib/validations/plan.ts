@@ -24,6 +24,8 @@ export const createPlanSchema = z.object({
   join_approval: z.boolean().default(true),
   items: z.array(planItemSchema).default([]),
   attendee_ids: z.array(z.string()).default([]),
+  cover_photo: z.string().nullable().optional(),
+  gallery_photos: z.array(z.string()).default([]),
 })
 
 export type CreatePlanFormValues = z.infer<typeof createPlanSchema>

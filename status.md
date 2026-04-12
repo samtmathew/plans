@@ -1,12 +1,12 @@
 # Plans — Project Status
 
 > Last updated: 2026-04-11
-> Updated by: Claude (bug fix + plan publish session)
+> Updated by: Claude (delete, media, edit bug fix session)
 
 ---
 
 ## Current Phase
-**Phase 3 — Core plan creation and home page flow working end-to-end. Ready for feature polish.**
+**Phase 4 — Plan management fully working (create, edit, delete, media). Ready for polish pass.**
 
 ---
 
@@ -64,7 +64,8 @@
 - [x] `GET /api/users/[id]` — get public profile
 - [x] `POST /api/plans` — create plan (with items + attendees in one call)
 - [x] `GET /api/plans/[id]` — get plan details
-- [x] `PUT /api/plans/[id]` — update plan
+- [x] `PUT /api/plans/[id]` — update plan (cover photo + gallery now included)
+- [x] `DELETE /api/plans/[id]` — soft-delete plan (sets `deleted_at`)
 - [x] `POST /api/plans/[id]/items` — add cost item
 - [x] `PUT /api/plans/[id]/items/[itemId]` — update cost item
 - [x] `DELETE /api/plans/[id]/items/[itemId]` — delete cost item
@@ -84,9 +85,14 @@
 - [x] `components/plan/CostBreakdown.tsx` — cost items list with live totals
 - [x] `components/plan/AttendeeSearch.tsx` — debounced user search dropdown
 - [x] `components/plan/AttendeeList.tsx` — attendee list with approve/reject
+- [x] `components/plan/CoverPhotoUpload.tsx` — square cover photo uploader (plan-covers bucket)
+- [x] `components/plan/GalleryUpload.tsx` — multi-image gallery uploader (plan-gallery bucket)
+- [x] `app/(app)/plans/[id]/DeletePlanButton.tsx` — soft-delete with confirmation dialog
+- [x] `components/ui/alert-dialog.tsx` — shadcn alert dialog
 - [x] `components/profile/ProfileForm.tsx` — profile setup/edit form
 - [x] `components/profile/ProfileCard.tsx` — user avatar + name card
 - [x] `components/profile/PhotoUpload.tsx` — avatar upload + multi-photo upload
+- [x] `SQL_CHANGELOG.md` — dated record of all schema, RLS, and storage SQL
 
 ### Build Verification
 - [x] `npm run build` passes with 0 errors, 15 pages compiled
