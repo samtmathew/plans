@@ -1,10 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { UserAvatar } from '@/components/common/Avatar'
-import { calcAge } from '@/lib/utils/format'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ExternalLink } from 'lucide-react'
+import { PlanCard } from '@/components/plan/PlanCard'
+import { Plus } from 'lucide-react'
+import type { Plan, PlanAttendee, Profile } from '@/types'
+
+interface PlanWithAttendees extends Plan {
+  attendees?: Array<PlanAttendee & { profile?: Profile }>
+}
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -12,87 +17,89 @@ export default async function ProfilePage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  if (!user) redirect('/login')
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user!.id)
+    .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/onboarding')
 
-  return (
-    <div className="space-y-6">
-      {/* Cover photos */}
-      {profile.photos?.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {profile.photos.map((url: string, i: number) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={url}
-              alt=""
-              className="h-36 w-36 rounded-xl object-cover shrink-0"
-            />
-          ))}
-        </div>
-      )}
+  // Fetch user's active plans
+  const { data: plans } = await supabase
+    .from('plans')
+    .select('*, attendees:plan_attendees(id, status, profile:profiles(id, name, avatar_url))')
+    .eq('organiser_id', user.id)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
 
-      {/* Profile header */}
-      <div className="flex items-start gap-4">
-        <UserAvatar url={profile.avatar_url} name={profile.name} size="xl" />
-        <div className="flex-1 min-w-0 space-y-1">
-          <h1 className="text-xl font-bold truncate">{profile.name}</h1>
-          {profile.date_of_birth && (
-            <p className="text-sm text-muted-foreground">
-              {calcAge(profile.date_of_birth)} years old
-              {profile.gender ? ` · ${profile.gender.replace(/_/g, ' ')}` : ''}
+  return (
+    <div className="space-y-12">
+      {/* Header Section */}
+      <div className="flex flex-col items-center text-center space-y-6">
+        {/* Avatar */}
+        <div className="relative">
+          <UserAvatar url={profile.avatar_url} name={profile.name} size="xl" className="w-32 h-32" />
+          <Button asChild size="sm" variant="ghost" className="absolute bottom-0 right-0 h-auto w-auto p-2">
+            <Link href="/profile/edit">
+              <span className="sr-only">Edit profile</span>
+            </Link>
+          </Button>
+        </div>
+
+        {/* Name & Bio */}
+        <div className="space-y-3 max-w-2xl">
+          <h1 className="font-headline text-4xl md:text-5xl font-bold text-on-surface -tracking-[0.04em]">
+            {profile.name}
+          </h1>
+          {profile.bio && (
+            <p className="text-sm md:text-base text-on-surface-variant leading-relaxed">
+              {profile.bio}
             </p>
           )}
-          {profile.bio && <p className="text-sm leading-relaxed">{profile.bio}</p>}
-
-          {/* Social links */}
-          {(profile.instagram || profile.linkedin || profile.twitter_x) && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {profile.instagram && (
-                <a
-                  href={`https://instagram.com/${profile.instagram}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Instagram
-                </a>
-              )}
-              {profile.linkedin && (
-                <a
-                  href={profile.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  LinkedIn
-                </a>
-              )}
-              {profile.twitter_x && (
-                <a
-                  href={`https://x.com/${profile.twitter_x}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  X / Twitter
-                </a>
-              )}
-            </div>
-          )}
         </div>
 
-        <Button asChild variant="outline" size="sm" className="shrink-0">
-          <Link href="/profile/edit">Edit</Link>
+        {/* CTA Button */}
+        <Button asChild>
+          <Link href="/profile/edit">Edit Profile</Link>
         </Button>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-surface-container">
+        <div className="flex gap-8">
+          <button className="pb-4 text-xs font-bold uppercase tracking-widest text-on-surface border-b-2 border-primary transition-colors">
+            My Plans
+          </button>
+        </div>
+      </div>
+
+      {/* My Plans Section */}
+      <div className="space-y-8">
+        {plans && plans.length > 0 ? (
+          <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6">
+            {(plans as PlanWithAttendees[]).map((plan) => (
+              <div key={plan.id} className="break-inside-avoid mb-6">
+                <PlanCard plan={plan} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <h3 className="text-lg font-headline text-on-surface mb-2">No plans yet</h3>
+            <p className="text-sm text-on-surface-variant mb-6">
+              Start planning your next adventure
+            </p>
+            <Button asChild>
+              <Link href="/plans/new" className="inline-flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                Create Plan
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
