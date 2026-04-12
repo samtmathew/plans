@@ -668,7 +668,7 @@ These are called out here so the DB schema and component structure don't paint u
 
 ## 13. Design Principles for MVP
 
-- **Mobile-first**: most users will view plans on their phones
+- **Mobile-UI-first**: most users will view plans on their phones
 - **One scroll per task**: plan creation should feel like one focused form, not a wizard with 10 steps
 - **Status at a glance**: badges everywhere — plan status (draft/active), attendee status (pending/approved), role (organiser/attendee)
 - **Copy-paste friendly**: join links should have a one-tap copy button, no friction
