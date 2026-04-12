@@ -79,8 +79,8 @@ export async function PUT(request: Request, { params }: Params) {
       return NextResponse.json({ data: null, error: deleteError.message }, { status: 500 })
     }
     if (items.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { error: insertError } = await supabase.from('plan_items').insert(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         items.map(({ id: _itemId, ...item }, i) => ({ ...item, plan_id: id, sort_order: i }))
       )
       if (insertError) {

@@ -8,6 +8,22 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    fontFamily: {
+      sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+      headline: ["Space Grotesk", "system-ui", "sans-serif"],
+      serif: ["Georgia", "serif"],
+      mono: ["Fira Code", "monospace"],
+    },
+    borderRadius: {
+      DEFAULT: "2px",
+      xs: "4px",
+      sm: "4px",
+      md: "8px",
+      lg: "12px",
+      xl: "16px",
+      "2xl": "24px",
+      full: "9999px",
+    },
     extend: {
       colors: {
         background: "var(--background)",
@@ -43,11 +59,11 @@ const config: Config = {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        "outline-variant": "rgb(198 198 198 / <alpha-value>)",
+        "on-surface-variant": "rgb(71 71 71 / <alpha-value>)",
+        "outline": "var(--outline)",
+        "surface-container-lowest": "var(--surface-container-lowest)",
+        "surface": "var(--surface)",
       },
     },
   },

@@ -147,13 +147,23 @@
   input,
   textarea,
   select {
-    @apply border-0 border-b border-outline-variant/30 bg-transparent px-0 py-2 font-sans outline-none transition-colors placeholder-on-surface-variant/50;
+    @apply border-0 border-b bg-transparent px-0 py-2 font-sans outline-none transition-colors;
+    border-color: var(--outline-variant);
+    opacity: 0.3;
+  }
+
+  input::placeholder,
+  textarea::placeholder,
+  select::placeholder {
+    color: var(--on-surface-variant);
+    opacity: 0.5;
   }
 
   input:focus,
   textarea:focus,
   select:focus {
-    @apply border-b-outline;
+    border-color: var(--outline);
+    opacity: 1;
   }
 
   /* Label styling - micro-label */
@@ -163,7 +173,8 @@
 
   /* Card styling */
   .card {
-    @apply rounded-[0.75rem] border border-outline-variant/20 bg-surface-container-lowest p-6;
+    @apply rounded-[0.75rem] border bg-surface-container-lowest p-6;
+    border-color: rgb(198 198 198 / 0.2);
   }
 
   /* Micro-label utility */
@@ -173,7 +184,9 @@
 
   /* Navbar glassmorphism utility */
   .navbar-glass {
-    @apply backdrop-blur-md bg-surface/80 border border-outline-variant/10;
+    @apply backdrop-blur-md border;
+    background-color: rgb(255 255 255 / 0.8);
+    border-color: rgb(198 198 198 / 0.1);
   }
 
   /* Masonry utility */
