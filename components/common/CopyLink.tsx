@@ -20,13 +20,21 @@ export function CopyLink({ url }: CopyLinkProps) {
 
   return (
     <div className="flex gap-2 items-center">
-      <Input value={url} readOnly className="text-sm text-muted-foreground" />
+      <div className="flex-1">
+        <label className="micro-label block mb-2">Join Link</label>
+        <Input
+          value={url}
+          readOnly
+          className="text-sm text-on-surface-variant border-0 border-b bg-transparent px-0 py-2 font-sans outline-none"
+        />
+      </div>
       <Button
         type="button"
         size="icon"
         variant="outline"
         onClick={handleCopy}
         aria-label="Copy join link"
+        className="mt-6"
       >
         {copied ? (
           <Check className="h-4 w-4 text-green-600" />

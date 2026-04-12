@@ -28,9 +28,9 @@ export function UserAvatar({ url, name, size = 'md', className }: UserAvatarProp
     .toUpperCase()
 
   return (
-    <ShadcnAvatar className={cn(sizeClasses[size], className)}>
+    <ShadcnAvatar className={cn(sizeClasses[size], 'bg-surface-container font-headline', className)}>
       <AvatarImage src={url ?? undefined} alt={name} />
-      <AvatarFallback className="bg-muted text-muted-foreground font-medium">
+      <AvatarFallback className="bg-surface-container text-on-surface font-headline font-semibold">
         {initials}
       </AvatarFallback>
     </ShadcnAvatar>

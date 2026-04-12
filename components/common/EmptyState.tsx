@@ -11,8 +11,8 @@ interface EmptyStateProps {
 export function EmptyState({ title, description, ctaLabel, ctaHref }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="text-sm text-muted-foreground max-w-xs">{description}</p>
+      <h3 className="font-headline text-2xl font-semibold text-on-surface">{title}</h3>
+      <p className="text-sm text-on-surface-variant max-w-xs">{description}</p>
       {ctaLabel && ctaHref && (
         <Button asChild className="mt-2">
           <Link href={ctaHref}>{ctaLabel}</Link>
