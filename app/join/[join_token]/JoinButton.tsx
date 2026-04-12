@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { ChevronRight } from 'lucide-react'
 
 interface JoinButtonProps {
   planId: string
@@ -36,8 +37,13 @@ export function JoinButton({ planId, joinToken }: JoinButtonProps) {
 
   return (
     <div className="space-y-2">
-      <Button onClick={handleJoin} disabled={loading} className="w-full">
-        {loading ? 'Sending request…' : 'Request to join'}
+      <Button
+        onClick={handleJoin}
+        disabled={loading}
+        className="w-full rounded-[2px]"
+      >
+        {loading ? 'Sending request…' : 'Join Plan'}
+        {!loading && <ChevronRight className="w-4 h-4" />}
       </Button>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
