@@ -99,8 +99,7 @@ export async function PUT(request: Request, { params }: Params) {
     )
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { items, attendee_ids: _attendeeIds, ...planFields } = parsed.data
+  const { items, attendee_ids, ...planFields } = parsed.data
 
   const { data: updated, error } = await supabase
     .from('plans')
@@ -126,6 +125,55 @@ export async function PUT(request: Request, { params }: Params) {
       )
       if (insertError) {
         return NextResponse.json({ data: null, error: insertError.message }, { status: 500 })
+      }
+    }
+  }
+
+  // Sync attendees if provided
+  if (attendee_ids !== undefined) {
+    const { data: existingAttendees, error: fetchErr } = await supabase
+      .from('plan_attendees')
+      .select('user_id, role')
+      .eq('plan_id', id)
+
+    if (fetchErr) {
+      return NextResponse.json({ data: null, error: fetchErr.message }, { status: 500 })
+    }
+
+    const currentIds = (existingAttendees || [])
+      .filter((a) => a.role !== 'organiser')
+      .map((a) => a.user_id)
+
+    // Find who to add and who to remove
+    const idsToAdd = attendee_ids.filter((uid: string) => !currentIds.includes(uid))
+    const idsToRemove = currentIds.filter((uid) => !attendee_ids.includes(uid))
+
+    if (idsToAdd.length > 0) {
+      const { error: addErr } = await supabase.from('plan_attendees').insert(
+        idsToAdd.map((uid: string) => ({
+          plan_id: id,
+          user_id: uid,
+          role: 'attendee',
+          status: 'pending',
+          joined_via: 'organiser_added',
+          invited_by: user.id,
+        }))
+      )
+      if (addErr) {
+        return NextResponse.json({ data: null, error: addErr.message }, { status: 500 })
+      }
+    }
+
+    if (idsToRemove.length > 0) {
+      const { error: removeErr } = await supabase
+        .from('plan_attendees')
+        .delete()
+        .eq('plan_id', id)
+        .in('user_id', idsToRemove)
+        .neq('role', 'organiser') // safety check
+      
+      if (removeErr) {
+        return NextResponse.json({ data: null, error: removeErr.message }, { status: 500 })
       }
     }
   }

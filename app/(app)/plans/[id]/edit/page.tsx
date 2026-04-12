@@ -22,9 +22,6 @@ export default async function EditPlanPage({ params }: Props) {
   if (plan.organiser_id !== user!.id) redirect(`/plans/${id}`)
 
   return (
-    <div className="space-y-6 pb-16">
-      <h1 className="text-xl font-semibold">Edit plan</h1>
-      <PlanEditForm plan={plan as unknown as Plan} />
-    </div>
+    <PlanEditForm plan={plan as unknown as Plan} />
   )
 }
