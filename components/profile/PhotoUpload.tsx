@@ -39,7 +39,7 @@ async function getCroppedBlob(imageSrc: string, croppedAreaPixels: Area): Promis
   )
 
   return new Promise((resolve) => {
-    canvas.toBlob((blob) => resolve(blob!), 'image/jpeg', 0.92)
+    canvas.toBlob((blob) => resolve(blob!), 'image/png')
   })
 }
 
@@ -84,7 +84,7 @@ function CropDialog({ open, imageSrc, shape, onConfirm, onCancel }: CropDialogPr
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={1}
+            aspect={shape === 'rect' ? 3 / 1 : 1}
             cropShape={shape}
             showGrid={false}
             onCropChange={setCrop}
@@ -125,7 +125,7 @@ export function AvatarUpload({ userId, currentUrl, name, onUpload }: AvatarUploa
     setUploading(true)
     try {
       const supabase = createClient()
-      const ext = file.type.split('/')[1] || 'jpg'
+      const ext = file.type.split('/')[1] || 'png'
       const path = `${userId}.${ext}`
 
       const { error: uploadError } = await supabase.storage
@@ -150,7 +150,7 @@ export function AvatarUpload({ userId, currentUrl, name, onUpload }: AvatarUploa
   }
 
   const handleCropConfirm = async (blob: Blob) => {
-    const file = new File([blob], `avatar.jpg`, { type: 'image/jpeg' })
+    const file = new File([blob], `avatar.png`, { type: 'image/png' })
     setCropSrc(null)
     if (cropSrc) URL.revokeObjectURL(cropSrc)
     await handleFile(file)
@@ -200,28 +200,36 @@ export function AvatarUpload({ userId, currentUrl, name, onUpload }: AvatarUploa
   )
 }
 
-interface PhotosUploadProps {
+export interface BannerUploadProps {
   userId: string
-  currentUrls: string[]
-  onUpload: (urls: string[]) => void
+  currentUrl?: string | null
+  onUpload: (url: string) => void
 }
 
-export function PhotosUpload({ userId, currentUrls, onUpload }: PhotosUploadProps) {
-  const [urls, setUrls] = useState<string[]>(currentUrls)
+const PASTEL_COLORS = [
+  '#FFB3B3', // Soft red/pink
+  '#FFD9B3', // Soft orange
+  '#FFFFB3', // Soft yellow
+  '#B3FFB3', // Soft green
+  '#B3D9FF', // Soft blue
+  '#E6B3FF', // Soft purple
+  '#D9D9D9', // Soft gray
+]
+
+export function BannerUpload({ userId, currentUrl, onUpload }: BannerUploadProps) {
+  const [url, setUrl] = useState<string | null>(currentUrl ?? null)
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [cropSrc, setCropSrc] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   async function handleFile(file: File) {
-    if (urls.length >= 3) return
     setError(null)
     setUploading(true)
     try {
       const supabase = createClient()
-      const slot = urls.length + 1
-      const ext = file.type.split('/')[1] || 'jpg'
-      const path = `${userId}/${slot}.${ext}`
+      const ext = file.type.split('/')[1] || 'png'
+      const path = `${userId}/banner-${Date.now()}.${ext}`
 
       const { error: uploadError } = await supabase.storage
         .from('profile-photos')
@@ -229,11 +237,10 @@ export function PhotosUpload({ userId, currentUrls, onUpload }: PhotosUploadProp
       if (uploadError) throw uploadError
 
       const { data } = supabase.storage.from('profile-photos').getPublicUrl(path)
-      const updated = [...urls, data.publicUrl]
-      setUrls(updated)
-      onUpload(updated)
+      setUrl(data.publicUrl)
+      onUpload(data.publicUrl)
     } catch (err) {
-      console.error('[PhotosUpload] upload error:', err)
+      console.error('[BannerUpload] upload error:', err)
       setError('Upload failed. Please try again.')
     } finally {
       setUploading(false)
@@ -246,7 +253,7 @@ export function PhotosUpload({ userId, currentUrls, onUpload }: PhotosUploadProp
   }
 
   const handleCropConfirm = async (blob: Blob) => {
-    const file = new File([blob], `photo.jpg`, { type: 'image/jpeg' })
+    const file = new File([blob], `banner.png`, { type: 'image/png' })
     setCropSrc(null)
     if (cropSrc) URL.revokeObjectURL(cropSrc)
     await handleFile(file)
@@ -257,45 +264,74 @@ export function PhotosUpload({ userId, currentUrls, onUpload }: PhotosUploadProp
     setCropSrc(null)
   }
 
-  function removePhoto(index: number) {
-    const updated = urls.filter((_, i) => i !== index)
-    setUrls(updated)
-    onUpload(updated)
+  const selectColor = (color: string) => {
+    setUrl(color)
+    onUpload(color)
   }
 
+  const isColor = url?.startsWith('#')
+
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2 flex-wrap">
-        {urls.map((url, i) => (
-          <div key={i} className="relative group">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4">
+        {/* Current Banner Preview */}
+        {url ? (
+          <div className="relative group w-full h-32 rounded-xl overflow-hidden border border-outline-variant shadow-sm transition-all">
+            {isColor ? (
+              <div className="w-full h-full" style={{ backgroundColor: url }} />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={url} alt="Cover" className="w-full h-full object-cover" />
+            )}
             <button
               type="button"
-              onClick={() => removePhoto(i)}
-              className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-foreground text-background flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label="Remove photo"
+              onClick={() => { setUrl(null); onUpload('') }}
+              className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 hover:scale-105"
+              aria-label="Remove cover"
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4" />
             </button>
           </div>
-        ))}
-        {urls.length < 3 && (
+        ) : (
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="relative h-20 w-20 rounded-lg border-2 border-dashed flex items-center justify-center text-muted-foreground hover:border-foreground transition-colors disabled:opacity-50"
-            aria-label="Add photo"
+            className="w-full h-32 rounded-xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-muted-foreground hover:border-foreground hover:bg-surface-container/50 transition-colors disabled:opacity-50"
           >
             {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <>
+                <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                <span className="text-sm font-medium">Uploading...</span>
+              </>
             ) : (
-              <Camera className="h-5 w-5" />
+              <>
+                <Camera className="h-6 w-6 mb-2 text-on-surface-variant" />
+                <span className="text-sm font-medium text-on-surface tracking-tight">Upload Cover Image</span>
+                <span className="text-xs text-on-surface-variant mt-1">Recommended 3:1 ratio</span>
+              </>
             )}
           </button>
         )}
+        
+        {/* Or choose color */}
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Or choose a color</p>
+          <div className="flex gap-3 flex-wrap">
+            {PASTEL_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => selectColor(color)}
+                className={`h-8 w-8 rounded-full border border-black/10 transition-all hover:scale-110 shadow-sm ${url === color ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}
+                style={{ backgroundColor: color }}
+                aria-label={`Select color ${color}`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
+      
       <input
         ref={inputRef}
         type="file"
@@ -310,8 +346,7 @@ export function PhotosUpload({ userId, currentUrls, onUpload }: PhotosUploadProp
         onConfirm={handleCropConfirm}
         onCancel={handleCropCancel}
       />
-      {error && <p className="text-xs text-destructive">{error}</p>}
-      <p className="text-xs text-on-surface-variant">Up to 3 photos</p>
+      {error && <p className="text-sm text-destructive font-medium">{error}</p>}
     </div>
   )
 }

@@ -19,5 +19,18 @@ export default async function ProfilePage() {
 
   if (!profile) redirect('/onboarding')
 
-  return <OwnProfileContent profile={profile as Profile} userId={user.id} />
+  const { data: plans } = await supabase
+    .from('plans')
+    .select(`
+      *,
+      attendees:plan_attendees(
+        id,
+        status,
+        profile:profiles(id, name, avatar_url)
+      )
+    `)
+    .eq('organiser_id', user.id)
+    .order('created_at', { ascending: false })
+
+  return <OwnProfileContent profile={profile as Profile} userId={user.id} plans={plans || []} />
 }

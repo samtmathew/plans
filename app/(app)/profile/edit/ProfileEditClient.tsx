@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProfileForm } from '@/components/profile/ProfileForm'
-import { AvatarUpload, PhotosUpload } from '@/components/profile/PhotoUpload'
+import { AvatarUpload, BannerUpload } from '@/components/profile/PhotoUpload'
 import type { Profile } from '@/types'
 import type { ProfileFormValues } from '@/lib/validations/profile'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,7 @@ interface Props {
 export default function ProfileEditClient({ profile, userId }: Props) {
   const router = useRouter()
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url ?? null)
-  const [photos, setPhotos] = useState<string[]>(profile.photos ?? [])
+  const [banner, setBanner] = useState<string | null>(profile.photos?.[0] ?? null)
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(values: ProfileFormValues) {
@@ -26,7 +26,7 @@ export default function ProfileEditClient({ profile, userId }: Props) {
     const res = await fetch('/api/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...values, avatar_url: avatarUrl, photos }),
+      body: JSON.stringify({ ...values, avatar_url: avatarUrl, photos: banner ? [banner] : [] }),
     })
     const json = await res.json()
     if (json.error) {
@@ -62,10 +62,10 @@ export default function ProfileEditClient({ profile, userId }: Props) {
         <div className="h-px bg-border" />
         <div className="space-y-2">
           <p className="text-sm font-semibold">
-            Cover photos{' '}
-            <span className="text-muted-foreground font-normal">(optional, up to 3)</span>
+            Cover image or color{' '}
+            <span className="text-muted-foreground font-normal">(optional)</span>
           </p>
-          <PhotosUpload userId={userId} currentUrls={photos} onUpload={setPhotos} />
+          <BannerUpload userId={userId} currentUrl={banner} onUpload={setBanner} />
         </div>
       </div>
 

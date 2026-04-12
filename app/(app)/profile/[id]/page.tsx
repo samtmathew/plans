@@ -23,10 +23,24 @@ export default async function PublicProfilePage({ params }: Props) {
 
   if (!profile) notFound()
 
+  const { data: plans } = await supabase
+    .from('plans')
+    .select(`
+      *,
+      attendees:plan_attendees(
+        id,
+        status,
+        profile:profiles(id, name, avatar_url)
+      )
+    `)
+    .eq('organiser_id', id)
+    .order('created_at', { ascending: false })
+
   return (
     <PublicProfileContent
       profile={profile as Profile}
       currentUserId={currentUser?.id}
+      plans={plans || []}
     />
   )
 }
