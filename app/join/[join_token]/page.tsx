@@ -4,9 +4,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Calendar, Users, ExternalLink } from 'lucide-react'
+import { Calendar, Users, ExternalLink, DollarSign } from 'lucide-react'
+import { calcEstimatedPerPerson } from '@/lib/utils/cost'
 import { JoinButton } from './JoinButton'
-import type { PlanAttendee } from '@/types'
+import type { PlanAttendee, PlanItem } from '@/types'
 
 interface Props {
   params: Promise<{ join_token: string }>
@@ -24,7 +25,7 @@ export default async function JoinPage({ params }: Props) {
   // Resolve join token → plan
   const { data: plan, error: planError } = await supabase
     .from('plans')
-    .select('*, organiser:profiles!organiser_id(*), attendees:plan_attendees(*)')
+    .select('*, organiser:profiles!organiser_id(*), attendees:plan_attendees(*), items:plan_items(*)')
     .eq('join_token', join_token)
     .single()
 
@@ -105,6 +106,10 @@ export default async function JoinPage({ params }: Props) {
   const approvedAttendees = (plan.attendees as PlanAttendee[])?.filter((a) => a.status === 'approved') ?? []
   const approvedCount = approvedAttendees.length
 
+  // Calculate cost per person
+  const planItems = (plan.items as PlanItem[]) ?? []
+  const costPerPerson = calcEstimatedPerPerson(planItems, approvedCount)
+
   // Gallery photos
   const galleryPhotos: string[] = plan.gallery_photos ?? []
 
@@ -177,6 +182,14 @@ export default async function JoinPage({ params }: Props) {
                 <Users className="w-3 h-3 text-on-surface" />
                 <span className="text-xs font-bold uppercase tracking-widest text-on-surface">
                   {approvedCount} {approvedCount === 1 ? 'attendee' : 'attendees'}
+                </span>
+              </div>
+            )}
+            {costPerPerson > 0 && (
+              <div className="inline-flex items-center gap-2 bg-surface-container-low rounded-full px-3 py-1">
+                <DollarSign className="w-3 h-3 text-on-surface" />
+                <span className="text-xs font-bold uppercase tracking-widest text-on-surface">
+                  ${Math.round(costPerPerson)}
                 </span>
               </div>
             )}
