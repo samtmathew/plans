@@ -36,7 +36,7 @@ export default async function JoinPage({ params }: Props) {
   // Organiser visiting their own join link
   if (plan.organiser_id === user.id) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center space-y-3">
           <h1 className="text-xl font-bold">You&apos;re the organiser</h1>
           <p className="text-muted-foreground text-sm">This is your own plan.</p>
@@ -44,7 +44,7 @@ export default async function JoinPage({ params }: Props) {
             <Link href={`/plans/${plan.id}`}>View plan</Link>
           </Button>
         </div>
-      </main>
+      </div>
     )
   }
 
@@ -52,7 +52,7 @@ export default async function JoinPage({ params }: Props) {
   const existing = (plan.attendees as PlanAttendee[])?.find((a) => a.user_id === user.id)
   if (existing) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center space-y-3">
           <h1 className="text-xl font-bold">You&apos;re already in this plan</h1>
           <p className="text-muted-foreground text-sm capitalize">
@@ -62,14 +62,14 @@ export default async function JoinPage({ params }: Props) {
             <Link href={`/plans/${plan.id}`}>View plan</Link>
           </Button>
         </div>
-      </main>
+      </div>
     )
   }
 
   // Plan closed
   if (plan.status === 'closed') {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center space-y-3">
           <h1 className="text-xl font-bold">This plan is closed</h1>
           <p className="text-muted-foreground text-sm">It&apos;s no longer accepting new members.</p>
@@ -77,14 +77,14 @@ export default async function JoinPage({ params }: Props) {
             <Link href="/home">Go home</Link>
           </Button>
         </div>
-      </main>
+      </div>
     )
   }
 
   // Plan is draft
   if (plan.status === 'draft') {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center space-y-3">
           <h1 className="text-xl font-bold">This plan isn&apos;t public yet</h1>
           <p className="text-muted-foreground text-sm">The organiser hasn&apos;t published it.</p>
@@ -92,7 +92,7 @@ export default async function JoinPage({ params }: Props) {
             <Link href="/home">Go home</Link>
           </Button>
         </div>
-      </main>
+      </div>
     )
   }
 
