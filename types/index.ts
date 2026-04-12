@@ -101,3 +101,34 @@ export type ProfileInput = {
   avatar_url?: string | null
   photos?: string[]
 }
+
+// -------------------------------------------------------
+// Guest join flow (unauthenticated attendees)
+// -------------------------------------------------------
+
+export type GuestAttendee = {
+  id: string
+  plan_id: string
+  guest_token: string
+  name: string
+  email: string | null
+  status: 'pending' | 'approved' | 'rejected'
+  joined_via: string
+  created_at: string
+}
+
+// Minimal plan data safe to render on the public join page (no auth)
+export type PlanPreviewData = {
+  id: string
+  title: string
+  description: string | null
+  cover_photo: string | null
+  start_date: string | null
+  join_approval: boolean
+  organiser: {
+    name: string
+    avatar_url: string | null
+  }
+  approved_count: number
+  cost_per_person: number
+}
