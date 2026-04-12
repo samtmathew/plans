@@ -5,13 +5,14 @@ import { ManageOverview } from './ManageOverview'
 import { ManagePending } from './ManagePending'
 import { ManageAttendees } from './ManageAttendees'
 import { ManageSettings } from './ManageSettings'
-import type { Plan, PlanAttendee } from '@/types'
+import type { Plan, PlanAttendee, GuestAttendee } from '@/types'
 
 interface ManageTabsProps {
   plan: Plan
   planId: string
   pendingAttendees: PlanAttendee[]
   approvedAttendees: PlanAttendee[]
+  guestAttendees: GuestAttendee[]
 }
 
 type TabValue = 'overview' | 'pending' | 'attendees' | 'settings'
@@ -21,12 +22,15 @@ export function ManageTabs({
   planId,
   pendingAttendees,
   approvedAttendees,
+  guestAttendees,
 }: ManageTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>('overview')
 
+  const pendingGuestCount = guestAttendees.filter((g) => g.status === 'pending').length
+
   const tabs: Array<{ value: TabValue; label: string; count?: number }> = [
     { value: 'overview', label: 'Overview' },
-    { value: 'pending', label: 'Pending', count: pendingAttendees.length },
+    { value: 'pending', label: 'Pending', count: pendingAttendees.length + pendingGuestCount },
     { value: 'attendees', label: 'Attendees', count: approvedAttendees.length },
     { value: 'settings', label: 'Settings' },
   ]
@@ -59,7 +63,11 @@ export function ManageTabs({
       <div className="mt-6">
         {activeTab === 'overview' && <ManageOverview plan={plan} />}
         {activeTab === 'pending' && (
-          <ManagePending planId={planId} attendees={pendingAttendees} />
+          <ManagePending
+            planId={planId}
+            attendees={pendingAttendees}
+            guestAttendees={guestAttendees}
+          />
         )}
         {activeTab === 'attendees' && <ManageAttendees attendees={approvedAttendees} />}
         {activeTab === 'settings' && <ManageSettings plan={plan} />}

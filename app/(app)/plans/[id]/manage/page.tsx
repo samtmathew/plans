@@ -5,7 +5,7 @@ import { ManageTabs } from './ManageTabs'
 import { ManageActions } from './ManageActions'
 import { Calendar } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge'
-import type { Plan, PlanAttendee } from '@/types'
+import type { Plan, PlanAttendee, GuestAttendee } from '@/types'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -42,6 +42,13 @@ export default async function ManagePlanPage({ params }: Props) {
 
   const pendingAttendees = (plan.attendees as PlanAttendee[]).filter((a) => a.status === 'pending') || []
   const approvedAttendees = (plan.attendees as PlanAttendee[]).filter((a) => a.status === 'approved') || []
+
+  // Fetch guest attendees for this plan
+  const { data: guestAttendees } = await supabase
+    .from('guest_attendees')
+    .select('*')
+    .eq('plan_id', id)
+    .order('created_at', { ascending: false })
 
   // Calculate total cost
   const totalCost = (plan.items as Array<{ price: number }>|| []).reduce((sum: number, item) => sum + item.price, 0)
@@ -105,6 +112,7 @@ export default async function ManagePlanPage({ params }: Props) {
         planId={id}
         pendingAttendees={pendingAttendees}
         approvedAttendees={approvedAttendees}
+        guestAttendees={(guestAttendees ?? []) as GuestAttendee[]}
       />
     </div>
   )
