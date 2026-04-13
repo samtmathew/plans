@@ -1,12 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
+import { motion } from 'motion/react'
+import { Loader2, CalendarDays } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { calcEstimatedPerPerson } from '@/lib/utils/cost'
+import { formatDate } from '@/lib/utils/format'
 import type { PlanItem, PlanAttendee } from '@/types'
 
 interface FullPlanData {
+  title: string
+  description: string
+  start_date: string | null
+  itinerary: string
   items: PlanItem[]
   attendees: PlanAttendee[]
 }
@@ -51,7 +57,43 @@ export function GuestFullPlan({ joinToken, guestToken }: Props) {
   const costPerPerson = calcEstimatedPerPerson(data.items, data.attendees.length)
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="space-y-6"
+    >
+      {/* Plan header */}
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold text-foreground">{data.title}</h2>
+        {data.start_date && (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+            <span>{formatDate(data.start_date)}</span>
+          </div>
+        )}
+        {data.description && (
+          <p className="text-sm text-muted-foreground leading-relaxed">{data.description}</p>
+        )}
+      </div>
+
+      {/* Itinerary */}
+      {data.itinerary && (
+        <div className="border border-border rounded-xl overflow-hidden">
+          <div className="bg-muted/50 px-4 py-3 border-b border-border">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Itinerary
+            </p>
+          </div>
+          <div className="px-4 py-4">
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+              {data.itinerary}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Cost breakdown */}
       {data.items.length > 0 && (
         <div className="border border-border rounded-xl overflow-hidden">
           <div className="bg-muted/50 px-4 py-3 border-b border-border">
@@ -84,6 +126,7 @@ export function GuestFullPlan({ joinToken, guestToken }: Props) {
         </div>
       )}
 
+      {/* Who's coming */}
       {data.attendees.length > 0 && (
         <div className="border border-border rounded-xl overflow-hidden">
           <div className="bg-muted/50 px-4 py-3 border-b border-border">
@@ -113,6 +156,6 @@ export function GuestFullPlan({ joinToken, guestToken }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
