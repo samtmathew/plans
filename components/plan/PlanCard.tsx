@@ -10,7 +10,7 @@ interface PlanCardProps {
   plan: Plan
 }
 
-/** Deterministic rotation from plan ID. Range: -1.5° to +1.5°. */
+/** Deterministic rotation from plan ID. Range: approximately -1.5° to +1.47°. */
 function getCardRotation(id: string): number {
   const hash = id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
   return ((hash % 100) / 100 - 0.5) * 3
@@ -40,7 +40,7 @@ function AvatarStack({ plan }: { plan: Plan }) {
   if (approved.length === 0) return null
 
   return (
-    <div className="flex items-center gap-1.5 pb-3">
+    <div className="flex items-center gap-1.5">
       <div className="flex">
         {visible.map((attendee, idx) => (
           <div
@@ -125,7 +125,7 @@ export function PlanCard({ plan }: PlanCardProps) {
         </div>
 
         {/* Body */}
-        <div className="p-3 pb-0 space-y-2">
+        <div className="p-3 space-y-2">
           <h3 className="font-headline text-sm font-semibold leading-snug -tracking-[0.02em] line-clamp-2 text-on-surface">
             {plan.title}
           </h3>
