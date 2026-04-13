@@ -22,6 +22,7 @@ export default function DeploymentBanner() {
       }
     }
 
+    check()
     const id = setInterval(check, 300_000)
     return () => clearInterval(id)
   }, [])
