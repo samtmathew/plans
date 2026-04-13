@@ -38,20 +38,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: plan.title,
       description,
       type: 'website',
-      images: [
-        {
-          url: `/join/${join_token}/opengraph-image`,
-          width: 1200,
-          height: 630,
-          alt: plan.title,
-        },
-      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: plan.title,
       description,
-      images: [`/join/${join_token}/opengraph-image`],
     },
   }
 }
