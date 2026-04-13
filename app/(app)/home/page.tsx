@@ -70,9 +70,9 @@ export default async function HomePage() {
           ctaHref="/plans/new"
         />
       ) : (
-        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 mb-32">
+        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 mb-32">
           {uniquePlans.map((plan) => (
-            <div key={plan.id} className="break-inside-avoid mb-8">
+            <div key={plan.id} className="break-inside-avoid mb-4">
               <PlanCard plan={plan} />
             </div>
           ))}
