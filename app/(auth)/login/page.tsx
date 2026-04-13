@@ -30,6 +30,8 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/home'
+  const guestToken = searchParams.get('guest_token')
+  const planId = searchParams.get('plan_id')
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -51,6 +53,20 @@ function LoginForm() {
     })
     if (error) {
       setError(error.message)
+      return
+    }
+    if (guestToken && planId) {
+      try {
+        await fetch('/api/auth/link-guest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guest_token: guestToken, plan_id: planId }),
+        })
+      } catch {
+        // link-guest failure is non-fatal — user is logged in, still redirect to plan
+      }
+      router.push(`/plans/${planId}`)
+      router.refresh()
       return
     }
     router.push(redirect)
