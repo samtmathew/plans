@@ -10,6 +10,7 @@ const geist = localFont({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://plans-kappa-mocha.vercel.app'),
   title: 'Plans',
   description: 'Organise group trips and outings — itineraries, costs, and attendees in one place.',
 }
