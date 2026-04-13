@@ -26,9 +26,10 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
   const router = useRouter()
   
   // attendees from plan (filter out organiser)
-  const initialAttendees = plan.attendees
+  const initialAttendees = (plan.attendees
     ?.filter((a) => a.role !== 'organiser')
-    ?.map((a) => a.profile) || []
+    ?.map((a) => a.profile)
+    ?.filter(Boolean) || []) as Profile[]
 
   const [items, setItems] = useState<PlanItemFormValues[]>(
     (plan.items ?? []).map((i: PlanItem) => ({
