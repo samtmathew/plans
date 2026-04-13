@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -14,7 +14,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { Loader2, ArrowRight } from 'lucide-react'
 
 export default function OnboardingPage() {
+  return (
+    <Suspense>
+      <OnboardingForm />
+    </Suspense>
+  )
+}
+
+function OnboardingForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const guestToken = searchParams.get('guest_token')
+  const planId = searchParams.get('plan_id')
   const [userId, setUserId] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -60,6 +71,23 @@ export default function OnboardingPage() {
         setError(json.error)
         return
       }
+
+      // If coming from a guest join, link the guest record
+      if (guestToken && planId) {
+        const linkRes = await fetch('/api/auth/link-guest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guest_token: guestToken, plan_id: planId }),
+        })
+        const linkJson = await linkRes.json()
+        if (linkJson.data?.plan_id) {
+          router.push(`/plans/${linkJson.data.plan_id}`)
+          router.refresh()
+          return
+        }
+        // If linking fails, fall through to /home — don't block onboarding
+      }
+
       router.push('/home')
       router.refresh()
     } finally {
