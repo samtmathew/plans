@@ -5,6 +5,7 @@ import path from 'node:path'
 import { calcEstimatedPerPerson } from '@/lib/utils/cost'
 import type { PlanAttendee, PlanItem } from '@/types'
 
+export const runtime = 'nodejs'
 export const alt = 'Plan Preview'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
@@ -74,7 +75,7 @@ export default async function OGImage({
             style={{
               fontSize: 96,
               fontWeight: 700,
-              color: 'rgba(18,18,18,0.08)',
+              color: 'rgba(18,18,18,0.5)',
               letterSpacing: '-0.04em',
             }}
           >
