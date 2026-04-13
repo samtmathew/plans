@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
+import dynamic from 'next/dynamic'
 import './globals.css'
+
+const DeploymentBanner = dynamic(() => import('@/components/DeploymentBanner'), { ssr: false })
 
 const geist = localFont({
   src: [
@@ -22,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geist.className} antialiased`}>{children}</body>
+      <body className={`${geist.className} antialiased`}>{children}<DeploymentBanner /></body>
     </html>
   )
 }
