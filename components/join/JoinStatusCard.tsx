@@ -40,7 +40,7 @@ const config = {
   },
 }
 
-export function JoinStatusCard({ state, guestName, planTitle: _planTitle, organiserName }: Props) {
+export function JoinStatusCard({ state, guestName, organiserName }: Props) {
   const c = config[state]
   const Icon = c.icon
   const [emailSaved, setEmailSaved] = useState(false)

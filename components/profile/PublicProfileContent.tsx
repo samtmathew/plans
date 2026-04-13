@@ -192,7 +192,7 @@ export function PublicProfileContent({
         ) : (
           <div className="py-16 flex flex-col items-center justify-center text-center bg-surface-container-lowest rounded-3xl border border-dashed border-outline-variant">
             <h3 className="text-xl font-headline font-semibold text-on-surface mb-2">No plans available</h3>
-            <p className="text-sm text-neutral-500 max-w-sm">This user hasn't created any plans yet.</p>
+            <p className="text-sm text-neutral-500 max-w-sm">This user hasn&apos;t created any plans yet.</p>
           </div>
         )}
       </section>

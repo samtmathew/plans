@@ -44,7 +44,7 @@ export default async function ManagePlanPage({ params }: Props) {
   const approvedAttendees = (plan.attendees as PlanAttendee[]).filter((a) => a.status === 'approved') || []
 
   // Fetch guest attendees for this plan
-  const { data: guestAttendees, error: guestError } = await supabase
+  const { data: guestAttendees } = await supabase
     .from('guest_attendees')
     .select('*')
     .eq('plan_id', id)
