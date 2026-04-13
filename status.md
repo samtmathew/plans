@@ -1,7 +1,7 @@
 # Plans — Project Status
 
-> Last updated: 2026-04-11
-> Updated by: Claude (delete, media, edit bug fix session)
+> Last updated: 2026-04-12
+> Updated by: Claude (card redesign + Vercel lint fix session)
 
 ---
 
@@ -96,6 +96,7 @@
 
 ### Build Verification
 - [x] `npm run build` passes with 0 errors, 15 pages compiled
+- [x] Vercel deployment unblocked — resolved 7 ESLint errors (`no-unused-vars`, `no-unescaped-entities`) across `manage/page.tsx`, `JoinStatusCard.tsx`, `PublicProfileContent.tsx`, `bg-animate-button.tsx`, `text-animate.tsx`
 
 ---
 

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 2026-04-12
+- feat: rewrite `PlanCard` with shift-reveal hover animation and deterministic organic per-card rotation (`components/plan/PlanCard.tsx`)
+- feat: add `--shadow-card` CSS token and `.plan-card-rot` rotation utility to `app/globals.css`
+- feat: tighten home page masonry grid gap for organic collage layout (`app/(app)/home/page.tsx`)
+- feat: apply `shadow-[var(--shadow-card)]` to join page card surfaces (`JoinCardPreviewFace.tsx`, `JoinStatusCard.tsx`)
+- fix: align `PlanCard` body spacing and document `plan-card-rot` transition ownership
+- fix: resolve 7 ESLint errors blocking Vercel build — unused vars in `manage/page.tsx`, `JoinStatusCard.tsx`, `bg-animate-button.tsx`, `text-animate.tsx`; unescaped entity in `PublicProfileContent.tsx`
+- fix: filter `undefined` from `initialAttendees` in `PlanEditForm.tsx` to prevent TypeScript type error
+- docs: add card redesign spec and implementation plan (`docs/superpowers/plans/`)
+
 ### 2026-04-11 (session 2 — delete, media, edit fixes)
 - fix: `CostBreakdown` passed as a Server Component prop (`onChange={() => {}}`) caused "event handlers cannot be passed to Client Component" error on plan detail page — made `onChange` optional and removed the no-op prop
 - fix: plan edit `PUT` route was silently swallowing item insert errors and spreading old `id` fields onto re-inserted rows — strip `id` before insert, add error propagation for both delete and insert steps
