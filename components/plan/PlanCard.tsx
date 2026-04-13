@@ -86,6 +86,7 @@ export function PlanCard({ plan }: PlanCardProps) {
 
   return (
     <Link href={`/plans/${plan.id}`} className="block">
+      {/* .plan-card-rot owns the transform and box-shadow transition — do not add transition-* Tailwind utilities to this element */}
       <div
         className={cn(
           'group plan-card-rot',
@@ -125,7 +126,7 @@ export function PlanCard({ plan }: PlanCardProps) {
         </div>
 
         {/* Body */}
-        <div className="p-3 space-y-2">
+        <div className="p-3 space-y-2.5">
           <h3 className="font-headline text-sm font-semibold leading-snug -tracking-[0.02em] line-clamp-2 text-on-surface">
             {plan.title}
           </h3>
