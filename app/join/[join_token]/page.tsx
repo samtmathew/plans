@@ -1,13 +1,45 @@
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createDirectClient } from '@supabase/supabase-js'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { calcEstimatedPerPerson } from '@/lib/utils/cost'
 import { JoinCard } from '@/components/join/JoinCard'
+import type { Metadata } from 'next'
 import type { PlanAttendee, PlanItem, PlanPreviewData } from '@/types'
 
 interface Props {
   params: Promise<{ join_token: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { join_token } = await params
+  const supabase = createDirectClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const { data: plan } = await supabase
+    .from('plans')
+    .select('title, description')
+    .eq('join_token', join_token)
+    .single()
+
+  if (!plan) {
+    return { title: 'Join a Plan — Plans' }
+  }
+
+  const description = plan.description || "You've been invited to join a plan on Plans."
+
+  return {
+    title: `${plan.title} — Plans`,
+    description,
+    openGraph: {
+      title: plan.title,
+      description,
+      type: 'website',
+    },
+  }
 }
 
 export default async function JoinPage({ params }: Props) {

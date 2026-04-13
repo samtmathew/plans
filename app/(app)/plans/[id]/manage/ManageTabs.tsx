@@ -13,6 +13,7 @@ interface ManageTabsProps {
   pendingAttendees: PlanAttendee[]
   approvedAttendees: PlanAttendee[]
   guestAttendees: GuestAttendee[]
+  joinUrl: string
 }
 
 type TabValue = 'overview' | 'pending' | 'attendees' | 'settings'
@@ -23,6 +24,7 @@ export function ManageTabs({
   pendingAttendees,
   approvedAttendees,
   guestAttendees,
+  joinUrl,
 }: ManageTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>('overview')
 
@@ -70,7 +72,7 @@ export function ManageTabs({
           />
         )}
         {activeTab === 'attendees' && <ManageAttendees attendees={approvedAttendees} />}
-        {activeTab === 'settings' && <ManageSettings plan={plan} />}
+        {activeTab === 'settings' && <ManageSettings plan={plan} joinUrl={joinUrl} />}
       </div>
     </div>
   )

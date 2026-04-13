@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -53,7 +54,11 @@ export default async function PlanDetailPage({ params }: Props) {
   )
   const approvedCount = approvedAttendees.length
 
-  const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL}/join/${plan.join_token}`
+  const headersList = await headers()
+  const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost:3000'
+  const proto = headersList.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https')
+  const origin = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`
+  const joinUrl = `${origin}/join/${plan.join_token}`
   const avatarStackAttendees = approvedAttendees.slice(0, 7)
   const extraCount = Math.max(0, approvedCount - 7)
   const galleryPhotos: string[] = plan.gallery_photos ?? []

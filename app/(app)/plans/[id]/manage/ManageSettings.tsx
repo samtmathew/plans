@@ -10,9 +10,10 @@ import type { Plan } from '@/types'
 
 interface ManageSettingsProps {
   plan: Plan
+  joinUrl: string
 }
 
-export function ManageSettings({ plan }: ManageSettingsProps) {
+export function ManageSettings({ plan, joinUrl }: ManageSettingsProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
@@ -44,8 +45,6 @@ export function ManageSettings({ plan }: ManageSettingsProps) {
       setLoading(false)
     }
   }
-
-  const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL}/join/${plan.join_token}`
 
   return (
     <div className="space-y-6">

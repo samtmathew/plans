@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import Image from 'next/image'
 import { ManageTabs } from './ManageTabs'
@@ -53,6 +54,12 @@ export default async function ManagePlanPage({ params }: Props) {
   // Calculate total cost
   const totalCost = (plan.items as Array<{ price: number }>|| []).reduce((sum: number, item) => sum + item.price, 0)
   const perPersonCost = approvedAttendees.length > 0 ? totalCost / approvedAttendees.length : 0
+
+  const headersList = await headers()
+  const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost:3000'
+  const proto = headersList.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https')
+  const origin = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`
+  const joinUrl = `${origin}/join/${plan.join_token}`
 
   return (
     <div className="space-y-8 pb-16">
@@ -113,6 +120,7 @@ export default async function ManagePlanPage({ params }: Props) {
         pendingAttendees={pendingAttendees}
         approvedAttendees={approvedAttendees}
         guestAttendees={(guestAttendees ?? []) as GuestAttendee[]}
+        joinUrl={joinUrl}
       />
     </div>
   )
