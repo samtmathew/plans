@@ -48,7 +48,7 @@ export function JoinCard({ plan, joinToken, authedUser }: Props) {
     }
 
     setGuestToken(session.guest_token)
-    setGuestName(session.name)
+    if (!authedUser) setGuestName(session.name)
 
     fetch(`/api/join/${joinToken}/guest-status?token=${session.guest_token}`)
       .then((r) => r.json())
