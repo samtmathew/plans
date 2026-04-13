@@ -15,8 +15,17 @@ interface Props {
 export function GuestConversionBanner({ guestToken, planId }: Props) {
   const router = useRouter()
   const [isLinking, setIsLinking] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
 
+  // First effect: mark as hydrated (client-side only)
   useEffect(() => {
+    setHydrated(true)
+  }, [])
+
+  // Second effect: auto-link if authenticated, but only after hydration
+  useEffect(() => {
+    if (!hydrated) return
+
     const linkGuest = async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -39,13 +48,12 @@ export function GuestConversionBanner({ guestToken, planId }: Props) {
         }
       } catch (error) {
         console.error('[GuestConversionBanner] link-guest failed:', error)
-      } finally {
         setIsLinking(false)
       }
     }
 
     linkGuest()
-  }, [guestToken, planId, router])
+  }, [hydrated, guestToken, planId, router])
 
   if (isLinking) {
     return (
