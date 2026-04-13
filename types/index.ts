@@ -115,6 +115,7 @@ export type GuestAttendee = {
   status: 'pending' | 'approved' | 'rejected'
   joined_via: string
   created_at: string
+  user_id: string | null
 }
 
 // Minimal plan data safe to render on the public join page (no auth)

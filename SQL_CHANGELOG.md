@@ -374,3 +374,24 @@ The initial migration was missing explicit role grants. Without these, RLS polic
 ```sql
 GRANT ALL ON guest_attendees TO anon, authenticated;
 ```
+
+---
+
+## 2026-04-13 — Guest-to-member conversion: user_id column
+
+### Purpose
+Allow converted guest records to be linked to the authenticated user account created during conversion. Used for audit trail and idempotency checks in the link-guest API.
+
+### SQL
+
+```sql
+ALTER TABLE guest_attendees
+  ADD COLUMN user_id UUID REFERENCES profiles(id) ON DELETE SET NULL;
+
+CREATE INDEX idx_guest_attendees_user_id ON guest_attendees(user_id);
+```
+
+### Notes
+- Column is nullable — most guests never convert to a full account.
+- When a guest converts, `guest_attendees.user_id` is set to `auth.uid()` AND a new `plan_attendees` row is created. The guest row is kept as audit trail.
+- Index added for quick lookup of "has this user already converted a guest record?"
