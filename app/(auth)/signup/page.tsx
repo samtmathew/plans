@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -39,6 +40,10 @@ function SignupForm() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState('')
 
+  const searchParams = useSearchParams()
+  const guestToken = searchParams.get('guest_token')
+  const planId = searchParams.get('plan_id')
+
   const {
     register,
     handleSubmit,
@@ -55,7 +60,9 @@ function SignupForm() {
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`,
+        emailRedirectTo: guestToken && planId
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?guest_token=${encodeURIComponent(guestToken)}&plan_id=${encodeURIComponent(planId)}`
+          : `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`,
       },
     })
     if (error) {
