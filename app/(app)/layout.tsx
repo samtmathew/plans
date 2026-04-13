@@ -16,18 +16,14 @@ import type { Profile } from '@/types'
 
 async function NavBar({ profile }: { profile: Profile }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  let inviteCount = 0
-  if (user) {
-    const { count } = await supabase
-      .from('plan_attendees')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('status', 'pending')
-      .eq('joined_via', 'organiser_added')
-    inviteCount = count ?? 0
-  }
+  const { count } = await supabase
+    .from('plan_attendees')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', profile.id)
+    .eq('status', 'pending')
+    .eq('joined_via', 'organiser_added')
+  const inviteCount = count ?? 0
 
   return (
     <header className="border-b bg-background sticky top-0 z-50">

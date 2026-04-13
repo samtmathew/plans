@@ -48,21 +48,32 @@ export default async function HomePage() {
   if (attendeeResult.error) console.error('attendeePlans error:', attendeeResult.error.message)
   if (inviteResult.error) console.error('invites error:', inviteResult.error.message)
 
-  const rawInvites = inviteResult.data ?? []
-  const invites: InviteWithPlan[] = rawInvites.map((row: Record<string, unknown>) => {
-    const plan = row.plan as Record<string, unknown>
-    const organiser = (plan?.organiser ?? {}) as Record<string, unknown>
+  type RawInviteRow = {
+    id: string
+    plan: {
+      id: string
+      title: string
+      cover_photo: string | null
+      start_date: string | null
+      organiser: { name: string; avatar_url: string | null } | null
+    } | null
+  }
+
+  const rawInvites = (inviteResult.data ?? []) as unknown as RawInviteRow[]
+  const invites: InviteWithPlan[] = rawInvites.map((row) => {
+    const plan = row.plan
+    const organiser = plan?.organiser ?? null
     return {
-      attendee_id: row.id as string,
+      attendee_id: row.id,
       plan: {
-        id: plan.id as string,
-        title: plan.title as string,
-        cover_photo: (plan.cover_photo as string) ?? null,
-        start_date: (plan.start_date as string) ?? null,
+        id: plan?.id ?? '',
+        title: plan?.title ?? '',
+        cover_photo: plan?.cover_photo ?? null,
+        start_date: plan?.start_date ?? null,
       },
       organiser: {
-        name: (organiser.name as string) ?? 'Organiser',
-        avatar_url: (organiser.avatar_url as string) ?? null,
+        name: organiser?.name ?? 'Organiser',
+        avatar_url: organiser?.avatar_url ?? null,
       },
     }
   })
