@@ -5,6 +5,7 @@ import { JoinCardPreviewFace } from './JoinCardPreviewFace'
 import { JoinCardFormFace } from './JoinCardFormFace'
 import { JoinStatusCard } from './JoinStatusCard'
 import { GuestFullPlan } from './GuestFullPlan'
+import { GuestConversionBanner } from './GuestConversionBanner'
 import type { PlanPreviewData } from '@/types'
 // Note: GuestFullPlan does not need the plan prop — it fetches its own full data
 
@@ -99,6 +100,7 @@ export function JoinCard({ plan, joinToken }: Props) {
       <div className="w-full max-w-[420px] mx-auto space-y-6">
         <JoinStatusCard state="approved" guestName={guestName} />
         <GuestFullPlan joinToken={joinToken} guestToken={guestToken} />
+        <GuestConversionBanner guestToken={guestToken} planId={plan.id} />
       </div>
     )
   }
