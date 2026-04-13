@@ -102,6 +102,21 @@ export type ProfileInput = {
   photos?: string[]
 }
 
+// Invite (organiser_added plan_attendees row) with joined plan + organiser data
+export type InviteWithPlan = {
+  attendee_id: string
+  plan: {
+    id: string
+    title: string
+    cover_photo: string | null
+    start_date: string | null
+  }
+  organiser: {
+    name: string
+    avatar_url: string | null
+  }
+}
+
 // -------------------------------------------------------
 // Guest join flow (unauthenticated attendees)
 // -------------------------------------------------------
