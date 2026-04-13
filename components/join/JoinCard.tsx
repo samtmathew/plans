@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Clock } from 'lucide-react'
 import { JoinCardPreviewFace } from './JoinCardPreviewFace'
 import { JoinCardFormFace } from './JoinCardFormFace'
 import { JoinStatusCard } from './JoinStatusCard'
 import { GuestFullPlan } from './GuestFullPlan'
 import { GuestConversionBanner } from './GuestConversionBanner'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import type { PlanPreviewData } from '@/types'
 // Note: GuestFullPlan does not need the plan prop — it fetches its own full data
 
@@ -67,7 +71,7 @@ export function JoinCard({ plan, joinToken, authedUser }: Props) {
       .catch(() => {
         setState(session.status)
       })
-  }, [joinToken])
+  }, [joinToken, authedUser])
 
   function handleImIn() {
     setIsFlipped(true)
@@ -136,6 +140,26 @@ export function JoinCard({ plan, joinToken, authedUser }: Props) {
   }
 
   if (state === 'pending') {
+    if (authedUser) {
+      return (
+        <div className="w-full max-w-[420px] mx-auto">
+          <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4 shadow-[var(--shadow-card)]">
+            <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mx-auto">
+              <Clock className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div className="space-y-1.5">
+              <h2 className="text-lg font-bold font-headline">{authedUser.name}, you&apos;re in the queue</h2>
+              <p className="text-sm text-muted-foreground">
+                {plan.organiser.name} will review your request. We&apos;ll notify you via the bell icon when approved.
+              </p>
+            </div>
+            <Link href="/home" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+              Go to your home page
+            </Link>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="w-full max-w-[420px] mx-auto">
         <JoinStatusCard

@@ -37,7 +37,7 @@ async function NavBar({ profile }: { profile: Profile }) {
             Create plan
           </Link>
 
-          <Link href="/home" className="relative p-1.5 rounded-full hover:bg-muted transition-colors">
+          <Link href="/home#invites" className="relative p-1.5 rounded-full hover:bg-muted transition-colors">
             <Bell className="w-5 h-5 text-muted-foreground" />
             {inviteCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">

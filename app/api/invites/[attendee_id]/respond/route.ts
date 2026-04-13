@@ -12,6 +12,13 @@ interface Params {
 
 export async function POST(request: Request, { params }: Params) {
   const { attendee_id } = await params
+
+  const uuidSchema = z.string().uuid()
+  const parsedId = uuidSchema.safeParse(attendee_id)
+  if (!parsedId.success) {
+    return NextResponse.json({ data: null, error: 'Invalid invite ID' }, { status: 400 })
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

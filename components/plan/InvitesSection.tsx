@@ -46,7 +46,7 @@ export function InvitesSection({ initialInvites }: Props) {
   }
 
   return (
-    <section className="mb-8">
+    <section id="invites" className="mb-8">
       <h2 className="font-headline text-2xl font-bold text-foreground tracking-tight mb-4">
         Invites
       </h2>
