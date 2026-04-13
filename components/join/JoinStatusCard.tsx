@@ -48,7 +48,7 @@ export function JoinStatusCard({ state, guestName, planTitle: _planTitle, organi
   const [saving, setSaving] = useState(false)
 
   return (
-    <div className={`rounded-xl border p-5 space-y-4 ${c.bgClass}`}>
+    <div className={`rounded-xl border p-5 space-y-4 shadow-[var(--shadow-card)] ${c.bgClass}`}>
       <div className="flex items-start gap-3">
         <Icon className={`w-6 h-6 mt-0.5 shrink-0 ${c.iconClass}`} />
         <div>

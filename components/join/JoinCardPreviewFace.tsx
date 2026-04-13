@@ -20,7 +20,7 @@ export function JoinCardPreviewFace({ plan, onImIn }: Props) {
     : null
 
   return (
-    <div className="flex flex-col h-full bg-card border border-border rounded-xl overflow-hidden">
+    <div className="flex flex-col h-full bg-card border border-border rounded-xl overflow-hidden shadow-[var(--shadow-card)]">
       {/* Cover photo */}
       <div className="relative h-48 w-full shrink-0 bg-muted">
         {plan.cover_photo ? (
