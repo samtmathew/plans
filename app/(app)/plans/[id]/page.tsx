@@ -92,6 +92,9 @@ export default async function PlanDetailPage({ params }: Props) {
             </div>
             <div className="flex gap-2 shrink-0">
               <Button asChild size="sm" variant="outline">
+                <Link href={`/plans/${id}/manage`}>Manage</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
                 <Link href={`/plans/${id}/edit`}>Edit</Link>
               </Button>
               <DeletePlanButton planId={id} />
