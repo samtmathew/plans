@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -191,13 +192,16 @@ function SignupForm() {
                 </p>
               </div>
 
-              {/* Hero image placeholder */}
-              <div className="bg-surface-container-low rounded-xl overflow-hidden">
-                <div className="aspect-[4/5] w-full bg-gradient-to-br from-surface-container-high to-surface-container-low flex items-center justify-center">
-                  <div className="text-center space-y-2 opacity-50">
-                    <div className="text-4xl">✨</div>
-                    <p className="text-xs text-on-surface-variant">Hero image</p>
-                  </div>
+              {/* Hero image */}
+              <div className="rounded-xl overflow-hidden">
+                <div className="aspect-[4/5] w-full relative">
+                  <Image
+                    src="/images/hero_image.png"
+                    alt="Plans — create your journey"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
                 </div>
               </div>
             </div>
