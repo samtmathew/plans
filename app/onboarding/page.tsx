@@ -86,6 +86,7 @@ function OnboardingForm() {
           return
         }
         // If linking fails, fall through to /home — don't block onboarding
+        console.error('[onboarding] link-guest failed, redirecting to /home', linkJson.error)
       }
 
       router.push('/home')
@@ -256,7 +257,11 @@ function OnboardingForm() {
                   setError(null)
                   setIsSubmitting(true)
                   // Save as draft - just redirect without validation
-                  router.push('/home')
+                  if (guestToken && planId) {
+                    router.push(`/plans/${planId}`)
+                  } else {
+                    router.push('/home')
+                  }
                   router.refresh()
                 }}
                 disabled={isSubmitting}
