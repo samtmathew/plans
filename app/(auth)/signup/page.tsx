@@ -60,9 +60,12 @@ function SignupForm() {
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: guestToken && planId
-          ? `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?guest_token=${encodeURIComponent(guestToken)}&plan_id=${encodeURIComponent(planId)}`
-          : `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`,
+        emailRedirectTo: (() => {
+          const next = guestToken && planId
+            ? `/onboarding?guest_token=${encodeURIComponent(guestToken)}&plan_id=${encodeURIComponent(planId)}`
+            : '/onboarding'
+          return `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`
+        })(),
       },
     })
     if (error) {

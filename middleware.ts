@@ -36,8 +36,9 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.includes(pathname)
   const isJoinRoute = pathname.startsWith('/join/')
   const isApiRoute = pathname.startsWith('/api/')
+  const isAuthRoute = pathname.startsWith('/auth/')
 
-  if (isPublicRoute || isJoinRoute || isApiRoute) {
+  if (isPublicRoute || isJoinRoute || isApiRoute || isAuthRoute) {
     // Skip landing page for already-authenticated users
     if (pathname === '/' && user) {
       const homeUrl = request.nextUrl.clone()
