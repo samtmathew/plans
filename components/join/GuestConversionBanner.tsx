@@ -8,8 +8,8 @@ interface Props {
 }
 
 export function GuestConversionBanner({ guestToken, planId }: Props) {
-  const signupUrl = `/signup?guest_token=${guestToken}&plan_id=${planId}`
-  const loginUrl = `/login?guest_token=${guestToken}&plan_id=${planId}`
+  const signupUrl = `/signup?guest_token=${encodeURIComponent(guestToken)}&plan_id=${encodeURIComponent(planId)}`
+  const loginUrl = `/login?guest_token=${encodeURIComponent(guestToken)}&plan_id=${encodeURIComponent(planId)}`
 
   return (
     <div className="border border-border rounded-xl px-5 py-5 space-y-4">
