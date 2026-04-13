@@ -230,6 +230,11 @@ CREATE POLICY "plan_attendees: approved attendees read approved"
     AND public.is_approved_plan_attendee(plan_attendees.plan_id)
   );
 
+-- Authenticated users can insert their own attendee row (used by link-guest conversion API)
+CREATE POLICY "plan_attendees: self insert"
+  ON plan_attendees FOR INSERT
+  WITH CHECK (user_id = auth.uid());
+
 
 -- ============================================================
 -- STORAGE BUCKETS

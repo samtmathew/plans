@@ -395,3 +395,23 @@ CREATE INDEX idx_guest_attendees_user_id ON guest_attendees(user_id);
 - Column is nullable — most guests never convert to a full account.
 - When a guest converts, `guest_attendees.user_id` is set to `auth.uid()` AND a new `plan_attendees` row is created. The guest row is kept as audit trail.
 - Index added for quick lookup of "has this user already converted a guest record?"
+
+---
+
+## 2026-04-13 — plan_attendees: self insert RLS policy
+
+### Purpose
+Allow authenticated users to insert their own attendee row. Required by the link-guest endpoint (Task 3) which creates a plan_attendees row on behalf of the authenticated user when converting from a guest record.
+
+### SQL
+
+```sql
+CREATE POLICY "plan_attendees: self insert"
+  ON plan_attendees FOR INSERT
+  WITH CHECK (user_id = auth.uid());
+```
+
+### Notes
+- Authorization is enforced at the application layer (link-guest checks guest_token validity and approved status before inserting).
+- This policy only allows inserting a row where user_id matches the caller — users cannot insert rows for other users.
+- The existing "plan_attendees: organiser all" policy (FOR ALL) already covered organiser-side inserts; this covers the attendee-side.
