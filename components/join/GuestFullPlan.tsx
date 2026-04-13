@@ -5,14 +5,10 @@ import { motion } from 'motion/react'
 import { Loader2, CalendarDays } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { calcEstimatedPerPerson } from '@/lib/utils/cost'
-import { formatDate } from '@/lib/utils/format'
-import type { PlanItem, PlanAttendee } from '@/types'
+import { formatDate, formatCurrency } from '@/lib/utils/format'
+import type { Plan, PlanItem, PlanAttendee } from '@/types'
 
-interface FullPlanData {
-  title: string
-  description: string
-  start_date: string | null
-  itinerary: string
+type FullPlanData = Pick<Plan, 'title' | 'description' | 'itinerary' | 'start_date'> & {
   items: PlanItem[]
   attendees: PlanAttendee[]
 }
@@ -114,14 +110,14 @@ export function GuestFullPlan({ joinToken, guestToken }: Props) {
                   </p>
                 </div>
                 <p className="text-sm font-semibold text-foreground shrink-0 ml-4">
-                  ${item.price.toFixed(2)}
+                  {formatCurrency(item.price)}
                 </p>
               </div>
             ))}
           </div>
           <div className="bg-muted/50 px-4 py-3 border-t border-border flex items-center justify-between">
             <p className="text-xs font-bold text-foreground">Est. per person</p>
-            <p className="text-sm font-bold text-primary">${Math.round(costPerPerson)}</p>
+            <p className="text-sm font-bold text-primary">{formatCurrency(costPerPerson)}</p>
           </div>
         </div>
       )}
