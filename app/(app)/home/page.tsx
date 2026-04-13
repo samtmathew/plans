@@ -4,7 +4,8 @@ import { PlanCard } from '@/components/plan/PlanCard'
 import { EmptyState } from '@/components/common/EmptyState'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import type { Plan } from '@/types'
+import { InvitesSection } from '@/components/plan/InvitesSection'
+import type { Plan, InviteWithPlan } from '@/types'
 
 const PLAN_SELECT = `
   *,
@@ -16,7 +17,7 @@ export default async function HomePage() {
   const user = await getAuthenticatedUser()
   const supabase = await createClient()
 
-  const [organiserResult, attendeeResult] = await Promise.all([
+  const [organiserResult, attendeeResult, inviteResult] = await Promise.all([
     supabase
       .from('plans')
       .select(PLAN_SELECT)
@@ -30,10 +31,41 @@ export default async function HomePage() {
       .eq('user_id', user!.id)
       .eq('status', 'approved')
       .neq('role', 'organiser'),
+
+    supabase
+      .from('plan_attendees')
+      .select(`
+        id,
+        plan:plans!plan_id(id, title, cover_photo, start_date, organiser:profiles!organiser_id(name, avatar_url))
+      `)
+      .eq('user_id', user!.id)
+      .eq('status', 'pending')
+      .eq('joined_via', 'organiser_added')
+      .order('created_at', { ascending: false }),
   ])
 
   if (organiserResult.error) console.error('organiserPlans error:', organiserResult.error.message)
   if (attendeeResult.error) console.error('attendeePlans error:', attendeeResult.error.message)
+  if (inviteResult.error) console.error('invites error:', inviteResult.error.message)
+
+  const rawInvites = inviteResult.data ?? []
+  const invites: InviteWithPlan[] = rawInvites.map((row: Record<string, unknown>) => {
+    const plan = row.plan as Record<string, unknown>
+    const organiser = (plan?.organiser ?? {}) as Record<string, unknown>
+    return {
+      attendee_id: row.id as string,
+      plan: {
+        id: plan.id as string,
+        title: plan.title as string,
+        cover_photo: (plan.cover_photo as string) ?? null,
+        start_date: (plan.start_date as string) ?? null,
+      },
+      organiser: {
+        name: (organiser.name as string) ?? 'Organiser',
+        avatar_url: (organiser.avatar_url as string) ?? null,
+      },
+    }
+  })
 
   const organiserPlans = (organiserResult.data ?? []) as Plan[]
   const attendeePlans = (attendeeResult.data ?? [])
@@ -61,6 +93,10 @@ export default async function HomePage() {
       <h1 className="font-headline text-6xl md:text-7xl lg:text-8xl font-bold text-foreground tracking-tight pt-8 pb-8">
         Your Plans
       </h1>
+
+      {invites.length > 0 && (
+        <InvitesSection initialInvites={invites} />
+      )}
 
       {uniquePlans.length === 0 ? (
         <EmptyState

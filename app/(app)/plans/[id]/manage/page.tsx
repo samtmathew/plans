@@ -41,7 +41,9 @@ export default async function ManagePlanPage({ params }: Props) {
     ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : 'No date set'
 
-  const pendingAttendees = (plan.attendees as PlanAttendee[]).filter((a) => a.status === 'pending') || []
+  const pendingAttendees = (plan.attendees as PlanAttendee[]).filter(
+    (a) => a.status === 'pending' && a.joined_via !== 'organiser_added'
+  ) || []
   const approvedAttendees = (plan.attendees as PlanAttendee[]).filter((a) => a.status === 'approved') || []
 
   // Fetch guest attendees for this plan

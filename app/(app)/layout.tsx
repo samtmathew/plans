@@ -10,10 +10,25 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profile } from '@/types'
 
 async function NavBar({ profile }: { profile: Profile }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let inviteCount = 0
+  if (user) {
+    const { count } = await supabase
+      .from('plan_attendees')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'pending')
+      .eq('joined_via', 'organiser_added')
+    inviteCount = count ?? 0
+  }
+
   return (
     <header className="border-b bg-background sticky top-0 z-50">
       <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -24,6 +39,15 @@ async function NavBar({ profile }: { profile: Profile }) {
         <div className="flex items-center gap-3">
           <Link href="/plans/new" className={cn(buttonVariants({ size: 'sm' }))}>
             Create plan
+          </Link>
+
+          <Link href="/home" className="relative p-1.5 rounded-full hover:bg-muted transition-colors">
+            <Bell className="w-5 h-5 text-muted-foreground" />
+            {inviteCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                {inviteCount > 9 ? '9+' : inviteCount}
+              </span>
+            )}
           </Link>
 
           <DropdownMenu>
