@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: Params) {
 
   const { data: plan } = await supabase
     .from('plans')
-    .select('id')
+    .select('id, title, description, start_date, itinerary')
     .eq('join_token', join_token)
     .single()
 
@@ -51,7 +51,14 @@ export async function GET(request: Request, { params }: Params) {
   ])
 
   return NextResponse.json({
-    data: { items: items ?? [], attendees: attendees ?? [] },
+    data: {
+      title: plan.title,
+      description: plan.description,
+      start_date: plan.start_date,
+      itinerary: plan.itinerary,
+      items: items ?? [],
+      attendees: attendees ?? [],
+    },
     error: null,
   })
 }
