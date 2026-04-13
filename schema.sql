@@ -236,6 +236,19 @@ CREATE POLICY "plan_attendees: self insert"
   WITH CHECK (user_id = auth.uid());
 
 
+
+-- ============================================================
+-- ROLE GRANTS
+-- ============================================================
+
+-- Authenticated users need INSERT permission on plan_attendees for the "self insert" RLS policy to work.
+-- RLS policies are evaluated after base permissions — without this grant, inserts return silently empty.
+GRANT INSERT ON plan_attendees TO authenticated;
+
+-- Guests need ALL permissions on guest_attendees table for public join flow.
+GRANT ALL ON guest_attendees TO anon, authenticated;
+
+
 -- ============================================================
 -- STORAGE BUCKETS
 -- (Run these separately or via Supabase dashboard Storage section)

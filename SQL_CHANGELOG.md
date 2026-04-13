@@ -415,3 +415,13 @@ CREATE POLICY "plan_attendees: self insert"
 - Authorization is enforced at the application layer (link-guest checks guest_token validity and approved status before inserting).
 - This policy only allows inserting a row where user_id matches the caller — users cannot insert rows for other users.
 - The existing "plan_attendees: organiser all" policy (FOR ALL) already covered organiser-side inserts; this covers the attendee-side.
+
+---
+
+## 2026-04-13 — plan_attendees INSERT grant for authenticated role
+
+The self-insert RLS policy requires the `authenticated` role to have base INSERT permission. Without this, RLS is evaluated but the base permission check rejects the query first — inserts return silently empty.
+
+```sql
+GRANT INSERT ON plan_attendees TO authenticated;
+```
