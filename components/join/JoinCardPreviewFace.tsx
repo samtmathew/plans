@@ -8,9 +8,11 @@ import type { PlanPreviewData } from '@/types'
 interface Props {
   plan: PlanPreviewData
   onImIn: () => void
+  authedUser?: { id: string; name: string; avatar_url: string | null } | null
+  onAuthJoin?: () => void
 }
 
-export function JoinCardPreviewFace({ plan, onImIn }: Props) {
+export function JoinCardPreviewFace({ plan, onImIn, authedUser, onAuthJoin }: Props) {
   const formattedDate = plan.start_date
     ? new Date(plan.start_date).toLocaleDateString('en-US', {
         month: 'short',
@@ -105,17 +107,46 @@ export function JoinCardPreviewFace({ plan, onImIn }: Props) {
         </div>
 
         {/* CTA */}
-        <button
-          onClick={onImIn}
-          className="w-full h-12 rounded-lg bg-primary text-primary-foreground font-bold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2"
-        >
-          I&apos;m in 🎉
-        </button>
-
-        {plan.join_approval && (
-          <p className="text-center text-[10px] text-muted-foreground -mt-2">
-            The organiser reviews all requests before approving
-          </p>
+        {authedUser ? (
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={onAuthJoin}
+              className="w-full h-12 rounded-lg bg-primary text-primary-foreground font-bold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              <Avatar className="w-6 h-6">
+                <AvatarImage src={authedUser.avatar_url ?? undefined} />
+                <AvatarFallback className="text-[10px]">
+                  {authedUser.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              Join as {authedUser.name}
+            </button>
+            <button
+              onClick={onImIn}
+              className="text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Not you? Join as a guest instead →
+            </button>
+            {plan.join_approval && (
+              <p className="text-center text-[10px] text-muted-foreground">
+                The organiser reviews all requests before approving
+              </p>
+            )}
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={onImIn}
+              className="w-full h-12 rounded-lg bg-primary text-primary-foreground font-bold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              I&apos;m in 🎉
+            </button>
+            {plan.join_approval && (
+              <p className="text-center text-[10px] text-muted-foreground -mt-2">
+                The organiser reviews all requests before approving
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>

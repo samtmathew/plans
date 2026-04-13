@@ -78,6 +78,18 @@ export default async function JoinPage({ params }: Props) {
     }
   }
 
+  let authedUser: { id: string; name: string; avatar_url: string | null } | null = null
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .eq('id', user.id)
+      .single()
+    if (profile) {
+      authedUser = { id: profile.id, name: profile.name, avatar_url: profile.avatar_url }
+    }
+  }
+
   if (plan.status === 'closed') {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
@@ -129,7 +141,7 @@ export default async function JoinPage({ params }: Props) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start pt-8 pb-16 px-4">
-      <JoinCard plan={previewData} joinToken={join_token} />
+      <JoinCard plan={previewData} joinToken={join_token} authedUser={authedUser} />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { JoinCardPreviewFace } from './JoinCardPreviewFace'
 import { JoinCardFormFace } from './JoinCardFormFace'
 import { JoinStatusCard } from './JoinStatusCard'
@@ -20,17 +21,19 @@ interface StoredSession {
 interface Props {
   plan: PlanPreviewData
   joinToken: string
+  authedUser: { id: string; name: string; avatar_url: string | null } | null
 }
 
 function storageKey(joinToken: string) {
   return `plans_join_${joinToken}`
 }
 
-export function JoinCard({ plan, joinToken }: Props) {
+export function JoinCard({ plan, joinToken, authedUser }: Props) {
+  const router = useRouter()
   const [state, setState] = useState<GuestState>('preview')
   const [isFlipped, setIsFlipped] = useState(false)
   const [guestToken, setGuestToken] = useState<string | null>(null)
-  const [guestName, setGuestName] = useState('')
+  const [guestName, setGuestName] = useState(authedUser?.name ?? '')
 
   useEffect(() => {
     const raw = localStorage.getItem(storageKey(joinToken))
@@ -69,6 +72,25 @@ export function JoinCard({ plan, joinToken }: Props) {
   function handleImIn() {
     setIsFlipped(true)
     setState('form')
+  }
+
+  async function handleAuthJoin() {
+    try {
+      const res = await fetch(`/api/join/${joinToken}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const { data, error } = await res.json()
+      if (error || !data) throw new Error(error ?? 'Failed to join')
+
+      if (data.status === 'approved') {
+        router.push(`/plans/${data.plan_id}`)
+      } else {
+        setState('pending')
+      }
+    } catch (err) {
+      console.error('Auth join failed:', err)
+    }
   }
 
   function handleFormBack() {
@@ -151,7 +173,12 @@ export function JoinCard({ plan, joinToken }: Props) {
             WebkitBackfaceVisibility: 'hidden',
           }}
         >
-          <JoinCardPreviewFace plan={plan} onImIn={handleImIn} />
+          <JoinCardPreviewFace
+            plan={plan}
+            onImIn={handleImIn}
+            authedUser={authedUser}
+            onAuthJoin={handleAuthJoin}
+          />
         </div>
 
         <div
