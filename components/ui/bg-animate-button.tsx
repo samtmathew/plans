@@ -135,9 +135,7 @@ export interface UnifiedButtonProps
 const BgAnimateButton = React.forwardRef<HTMLButtonElement, UnifiedButtonProps>(
   (
     {
-      variant: _variant = "primary",
       size = "default",
-      showBackground: _showBackground = false,
       rounded = "full",
       shadow = "soft",
       gradient = null,
