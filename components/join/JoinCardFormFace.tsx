@@ -5,21 +5,20 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowLeft, Loader2 } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import type { PlanPreviewData } from '@/types'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
-  email: z.string().email('Enter a valid email').optional().or(z.literal('')),
 })
 type FormValues = z.infer<typeof formSchema>
 
 interface Props {
   plan: PlanPreviewData
   onBack: () => void
-  onSubmit: (name: string, email: string) => Promise<void>
+  onSubmit: (name: string) => Promise<void>
 }
 
 export function JoinCardFormFace({ plan, onBack, onSubmit }: Props) {
@@ -36,7 +35,7 @@ export function JoinCardFormFace({ plan, onBack, onSubmit }: Props) {
   async function onFormSubmit(values: FormValues) {
     setServerError(null)
     try {
-      await onSubmit(values.name, values.email ?? '')
+      await onSubmit(values.name)
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Something went wrong')
     }
@@ -92,27 +91,6 @@ export function JoinCardFormFace({ plan, onBack, onSubmit }: Props) {
           />
           {errors.name && (
             <p className="text-xs text-destructive">{errors.name.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="guest-email" className="text-xs font-semibold uppercase tracking-wide">
-              Email
-            </Label>
-            <span className="text-[10px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">
-              optional
-            </span>
-          </div>
-          <Input
-            id="guest-email"
-            type="email"
-            placeholder="Get notified when approved"
-            {...register('email')}
-            className="h-11"
-          />
-          {errors.email && (
-            <p className="text-xs text-destructive">{errors.email.message}</p>
           )}
         </div>
 

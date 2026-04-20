@@ -102,11 +102,11 @@ export function JoinCard({ plan, joinToken, authedUser }: Props) {
     setState('preview')
   }
 
-  async function handleFormSubmit(name: string, email: string) {
+  async function handleFormSubmit(name: string) {
     const res = await fetch(`/api/join/${joinToken}/guest`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email: email || undefined }),
+      body: JSON.stringify({ name }),
     })
     const { data, error } = await res.json()
     if (error || !data) throw new Error(error ?? 'Failed to join')

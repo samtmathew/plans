@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendApprovalNotification } from '@/lib/email'
 import { z } from 'zod'
 
 const patchSchema = z.object({
@@ -49,6 +50,25 @@ export async function PATCH(request: Request, { params }: Params) {
     .single()
 
   if (error) return NextResponse.json({ data: null, error: error.message }, { status: 500 })
+
+  // Fire-and-forget: notify guest on approval (only if they have an email)
+  if (parsed.data.status === 'approved' && data.email && data.name) {
+    const supabaseInner = await createClient()
+    const { data: planData } = await supabaseInner
+      .from('plans')
+      .select('id, title')
+      .eq('id', planId)
+      .single()
+    if (planData) {
+      sendApprovalNotification({
+        userEmail: data.email,
+        userName: data.name,
+        planTitle: planData.title,
+        planId: planData.id,
+      })
+    }
+  }
+
   return NextResponse.json({ data, error: null })
 }
 

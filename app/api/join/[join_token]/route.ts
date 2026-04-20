@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { sendJoinRequest } from '@/lib/email'
 
 interface Params {
   params: Promise<{ join_token: string }>
@@ -33,7 +35,7 @@ export async function POST(_request: Request, { params }: Params) {
 
   const { data: plan } = await supabase
     .from('plans')
-    .select('id, status, join_approval, organiser_id')
+    .select('id, title, status, join_approval, organiser_id, organiser:profiles!organiser_id(name)')
     .eq('join_token', join_token)
     .single()
 
@@ -84,6 +86,30 @@ export async function POST(_request: Request, { params }: Params) {
 
   if (error) {
     return NextResponse.json({ data: null, error: error.message }, { status: 500 })
+  }
+
+  // Fire-and-forget: notify organiser of new join request (only when pending)
+  if (status === 'pending') {
+    const organiserProfile = plan.organiser as unknown as { name: string } | null
+    if (organiserProfile) {
+      const admin = createAdminClient()
+      const { data: { user: joiningUser } } = await admin.auth.admin.getUserById(user.id)
+      const { data: { user: organiserUser } } = await admin.auth.admin.getUserById(plan.organiser_id)
+      if (organiserUser?.email && joiningUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', user.id)
+          .single()
+        sendJoinRequest({
+          organiserEmail: organiserUser.email,
+          organiserName: organiserProfile.name,
+          joinerName: profile?.name ?? joiningUser.email ?? 'Someone',
+          planTitle: plan.title as string,
+          planId: plan.id,
+        })
+      }
+    }
   }
 
   return NextResponse.json({ data, error: null })

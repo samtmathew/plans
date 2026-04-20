@@ -5,7 +5,9 @@ import { EmptyState } from '@/components/common/EmptyState'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { InvitesSection } from '@/components/plan/InvitesSection'
+import { PendingPlansSection } from '@/components/plan/PendingPlansSection'
 import type { Plan, InviteWithPlan } from '@/types'
+import type { PendingPlan } from '@/components/plan/PendingPlansSection'
 
 const PLAN_SELECT = `
   *,
@@ -17,7 +19,7 @@ export default async function HomePage() {
   const user = await getAuthenticatedUser()
   const supabase = await createClient()
 
-  const [organiserResult, attendeeResult, inviteResult] = await Promise.all([
+  const [organiserResult, attendeeResult, inviteResult, pendingLinkResult] = await Promise.all([
     supabase
       .from('plans')
       .select(PLAN_SELECT)
@@ -42,11 +44,23 @@ export default async function HomePage() {
       .eq('status', 'pending')
       .eq('joined_via', 'organiser_added')
       .order('created_at', { ascending: false }),
+
+    supabase
+      .from('plan_attendees')
+      .select(`
+        id,
+        plan:plans!plan_id(id, title, cover_photo, start_date, organiser:profiles!organiser_id(name, avatar_url))
+      `)
+      .eq('user_id', user!.id)
+      .eq('status', 'pending')
+      .eq('joined_via', 'invite_link')
+      .order('created_at', { ascending: false }),
   ])
 
   if (organiserResult.error) console.error('organiserPlans error:', organiserResult.error.message)
   if (attendeeResult.error) console.error('attendeePlans error:', attendeeResult.error.message)
   if (inviteResult.error) console.error('invites error:', inviteResult.error.message)
+  if (pendingLinkResult.error) console.error('pendingLink error:', pendingLinkResult.error.message)
 
   type RawInviteRow = {
     id: string
@@ -78,6 +92,34 @@ export default async function HomePage() {
     }
   })
 
+  type RawPendingRow = {
+    id: string
+    plan: {
+      id: string
+      title: string
+      cover_photo: string | null
+      start_date: string | null
+      organiser: { name: string; avatar_url: string | null } | null
+    } | null
+  }
+
+  const rawPending = (pendingLinkResult.data ?? []) as unknown as RawPendingRow[]
+  const pendingLinkPlans: PendingPlan[] = rawPending
+    .filter((r) => r.plan !== null)
+    .map((r) => ({
+      attendee_id: r.id,
+      plan: {
+        id: r.plan!.id,
+        title: r.plan!.title,
+        cover_photo: r.plan!.cover_photo,
+        start_date: r.plan!.start_date,
+      },
+      organiser: {
+        name: r.plan!.organiser?.name ?? 'Organiser',
+        avatar_url: r.plan!.organiser?.avatar_url ?? null,
+      },
+    }))
+
   const organiserPlans = (organiserResult.data ?? []) as Plan[]
   const attendeePlans = (attendeeResult.data ?? [])
     .map((r) => (r.plan as unknown as Plan | null))
@@ -107,6 +149,10 @@ export default async function HomePage() {
 
       {invites.length > 0 && (
         <InvitesSection initialInvites={invites} />
+      )}
+
+      {pendingLinkPlans.length > 0 && (
+        <PendingPlansSection plans={pendingLinkPlans} />
       )}
 
       {uniquePlans.length === 0 ? (

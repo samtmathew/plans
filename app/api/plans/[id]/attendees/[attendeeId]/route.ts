@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { sendApprovalNotification } from '@/lib/email'
 import { z } from 'zod'
 
 interface Params {
@@ -42,6 +44,33 @@ export async function PATCH(request: Request, { params }: Params) {
     .single()
 
   if (error) return NextResponse.json({ data: null, error: error.message }, { status: 500 })
+
+  // Fire-and-forget: notify approved user
+  if (parsed.data.status === 'approved') {
+    const admin = createAdminClient()
+    const { data: { user: approvedUser } } = await admin.auth.admin.getUserById(data.user_id)
+    if (approvedUser?.email) {
+      const { data: planData } = await supabase
+        .from('plans')
+        .select('id, title')
+        .eq('id', planId)
+        .single()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', data.user_id)
+        .single()
+      if (planData) {
+        sendApprovalNotification({
+          userEmail: approvedUser.email,
+          userName: profile?.name ?? approvedUser.email,
+          planTitle: planData.title,
+          planId: planData.id,
+        })
+      }
+    }
+  }
+
   return NextResponse.json({ data, error: null })
 }
 
