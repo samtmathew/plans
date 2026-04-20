@@ -1,22 +1,51 @@
-'use client'
+"use client"
 
-import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react'
+import { Suspense, useState } from "react"
+import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Eye, EyeOff } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { GrainOverlay } from "@/components/common/GrainOverlay"
+import { MasonryCollage } from "@/components/landing/MasonryCollage"
 
 const schema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
 })
 type FormValues = z.infer<typeof schema>
+
+const LOGIN_COLLAGE = [
+  {
+    title: "Summer Solstice Supper",
+    meta: "June 21",
+    imageUrl: "https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=400&q=80&auto=format&fit=crop",
+    aspectClass: "aspect-[4/5]",
+  },
+  {
+    title: "Gallery Opening",
+    meta: "West End Arts",
+    imageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80&auto=format&fit=crop",
+    aspectClass: "aspect-square",
+  },
+  {
+    title: "Morning Coffee",
+    meta: "Every Sunday",
+    imageUrl: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&q=80&auto=format&fit=crop",
+    aspectClass: "aspect-square",
+  },
+  {
+    title: "Cabin Retreat",
+    meta: "The Berkshires",
+    imageUrl: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80&auto=format&fit=crop",
+    aspectClass: "aspect-[4/5]",
+  },
+]
 
 export default function LoginPage() {
   return (
@@ -29,37 +58,34 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/home'
-  const guestToken = searchParams.get('guest_token')
-  const planId = searchParams.get('plan_id')
-  const [error, setError] = useState<string | null>(null)
-  const [showPassword, setShowPassword] = useState(false)
+  const redirect = searchParams.get("redirect") || "/home"
+  const guestToken = searchParams.get("guest_token")
+  const planId = searchParams.get("plan_id")
+  const [showPw, setShowPw] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { email: '', password: '' },
-  })
+  } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
   async function onSubmit(values: FormValues) {
-    setError(null)
+    setServerError(null)
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({
       email: values.email,
       password: values.password,
     })
     if (error) {
-      setError(error.message)
+      setServerError(error.message)
       return
     }
     if (guestToken && planId) {
       try {
-        await fetch('/api/auth/link-guest', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        await fetch("/api/auth/link-guest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ guest_token: guestToken, plan_id: planId }),
         })
       } catch {
@@ -74,185 +100,107 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface text-on-surface overflow-hidden">
-      {/* Ambient gradient background */}
-      <div className="fixed inset-0 -z-10 pointer-events-none">
-        {/* Top-right radial gradient */}
-        <div
-          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full opacity-30"
-          style={{
-            background: 'radial-gradient(circle, var(--surface-container-high), transparent)',
-            filter: 'blur(80px)',
-          }}
-        />
-        {/* Bottom-left radial gradient */}
-        <div
-          className="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full opacity-30"
-          style={{
-            background: 'radial-gradient(circle, var(--surface-container-low), transparent)',
-            filter: 'blur(80px)',
-          }}
-        />
-      </div>
+    <div className="h-screen flex overflow-hidden" style={{ background: "var(--bg)" }}>
+      <GrainOverlay />
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 md:px-8 py-12">
-        <div className="w-full max-w-[380px] space-y-12">
-          {/* Logo */}
-          <div>
-            <Link href="/" className="text-sm font-bold text-on-surface hover:opacity-70 transition-opacity">
-              Plans
-            </Link>
-          </div>
+      {/* LEFT PANEL — 40% */}
+      <div className="w-full lg:w-2/5 flex flex-col justify-between bg-white px-16 py-14 overflow-y-auto z-10 shadow-[4px_0_40px_rgba(28,27,27,0.06)]">
+        <div>
+          <Link href="/" className="font-headline italic text-[22px] text-[#1C1B1B] block mb-16">
+            Plans
+          </Link>
 
-          {/* Headline */}
-          <div className="space-y-4">
-            <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter leading-[0.9] text-on-surface">
-              Welcome
-            </h1>
-            <p className="text-sm text-on-surface-variant">
-              Log in to access your trips and plans.
-            </p>
-          </div>
+          <h1 className="font-headline italic text-[52px] leading-none tracking-[-1.5px] text-[#1C1B1B] mb-2">
+            Welcome back.
+          </h1>
+          <p className="text-[14px] text-[#5E5E5E] mb-12 leading-[1.5]">
+            Log in to continue planning with the people you care about.
+          </p>
 
-          {/* Form */}
+          {serverError && (
+            <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-[13px] text-red-700">
+              {serverError}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* Email field */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-on-surface-variant">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#5E5E5E]">
                 Email address
               </Label>
               <Input
-                id="email"
                 type="email"
+                placeholder="name@example.com"
                 autoComplete="email"
-                placeholder="you@example.com"
-                className="border-0 border-b bg-transparent px-0 py-2 text-on-surface placeholder:text-on-surface-variant/50 focus:border-on-surface"
-                {...register('email')}
+                className="border-0 border-b border-[#C7C5D3] rounded-none bg-transparent px-0 py-2 text-[15px] focus-visible:ring-0 focus-visible:border-[#3D3D8F] transition-colors placeholder:text-[#C7C5D3] shadow-none"
+                {...register("email")}
               />
               {errors.email && (
-                <p className="text-xs text-destructive">{errors.email.message}</p>
+                <p className="text-[12px] text-red-600">{errors.email.message}</p>
               )}
             </div>
 
-            {/* Password field */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-on-surface-variant">
-                  Password
-                </Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-on-surface-variant hover:text-on-surface transition-colors underline underline-offset-2"
-                >
-                  Forgot?
-                </Link>
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#5E5E5E]">
+                Password
+              </Label>
               <div className="relative">
                 <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPw ? "text" : "password"}
+                  placeholder="••••••••"
                   autoComplete="current-password"
-                  className="border-0 border-b bg-transparent px-0 py-2 text-on-surface placeholder:text-on-surface-variant/50 focus:border-on-surface pr-10"
-                  {...register('password')}
+                  className="border-0 border-b border-[#C7C5D3] rounded-none bg-transparent px-0 py-2 text-[15px] focus-visible:ring-0 focus-visible:border-[#3D3D8F] transition-colors pr-8 placeholder:text-[#C7C5D3] shadow-none"
+                  {...register("password")}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPw(!showPw)}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 text-[#C7C5D3] hover:text-[#5E5E5E] transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-destructive">{errors.password.message}</p>
+                <p className="text-[12px] text-red-600">{errors.password.message}</p>
               )}
+              <div className="text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-[12px] text-[#5E5E5E] hover:text-[#1C1B1B] transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
-            {/* Error message */}
-            {error && (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-[2px] px-4 py-3">
-                <p className="text-sm text-destructive">{error}</p>
-              </div>
-            )}
-
-            {/* Submit button */}
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full uppercase tracking-[0.2em] py-4 px-6 rounded-[2px] bg-on-surface text-surface hover:bg-on-surface/90 transition-colors font-medium text-sm flex items-center justify-center gap-2"
+              className="w-full rounded-full bg-[#1C1B1B] text-white py-6 text-[15px] font-medium flex items-center justify-between px-6 shadow-[0_4px_16px_rgba(28,27,27,0.1)] hover:bg-[#2d2d2d] disabled:opacity-50"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Logging in…
-                </>
-              ) : (
-                <>
-                  Log In
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
+              <span>{isSubmitting ? "Logging in…" : "Log in"}</span>
+              <span>→</span>
             </Button>
           </form>
 
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-outline-variant/20" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-surface px-2 text-on-surface-variant">or</span>
-            </div>
-          </div>
-
-          {/* Sign up link */}
-          <p className="text-center text-sm text-on-surface-variant">
-            Don&apos;t have an account?{' '}
+          <p className="text-[13px] text-[#5E5E5E] text-center mt-6">
+            No account?{" "}
             <Link
               href="/signup"
-              className="text-on-surface font-medium hover:opacity-70 transition-opacity underline underline-offset-2"
+              className="text-[#1C1B1B] font-medium hover:text-[#3D3D8F] transition-colors"
             >
               Sign up
             </Link>
           </p>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="bg-surface-container-low py-8 px-6 md:px-8 border-t border-outline-variant/10">
-        <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 text-xs">
-          <div className="font-bold font-headline text-on-surface">Plans</div>
-          <div className="flex gap-6 md:gap-8">
-            <a
-              href="#"
-              className="uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors opacity-70"
-            >
-              Privacy
-            </a>
-            <a
-              href="#"
-              className="uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors opacity-70 underline underline-offset-2"
-            >
-              Terms
-            </a>
-            <a
-              href="#"
-              className="uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors opacity-70"
-            >
-              Support
-            </a>
-          </div>
-          <div className="uppercase tracking-widest text-on-surface-variant opacity-70">
-            © Plans Boutique Travel
-          </div>
-        </div>
-      </footer>
+        <p className="text-[11px] text-[#5E5E5E] mt-8">© 2025 Plans · Made for making plans</p>
+      </div>
+
+      {/* RIGHT PANEL — 60% */}
+      <div className="hidden lg:block lg:w-3/5 bg-[#F6F3F2] relative overflow-hidden">
+        <MasonryCollage cards={LOGIN_COLLAGE} />
+      </div>
     </div>
   )
 }
