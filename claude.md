@@ -10,6 +10,32 @@
 
 ---
 
+## Brand Identity
+
+**Aesthetic:** Pinterest card density + Notion spatial clarity + Polaroid memory warmth.
+
+**Typography:** Display/hero: `Instrument Serif` italic — h1, plan card titles, serif moments. All UI text: `DM Sans`. Both loaded via `next/font/google` in `app/layout.tsx`.
+
+**Colors:**
+- Background: `#FCF9F8` (warm off-white canvas)
+- Text primary: `#1C1B1B`
+- Text secondary: `#5E5E5E`
+- Accent: `#3D3D8F` deep indigo — used sparingly (badges, links, hero accent word)
+- Surface: `#F0EDEC` / `#F6F3F2`
+- Divider: `#C7C5D3`
+
+**Growth mechanic:** WhatsApp link sharing is the primary acquisition loop. `/join/[token]` is the most important public-facing screen.
+
+**Design rules:**
+- Cards: subtle rotation (±1.5°), hover to `rotate-0 -translate-y-1`
+- Images: default `grayscale(15%)`, hover to full color
+- Buttons: filled pill, ghost, or underline — no square buttons
+- Form inputs: bottom-border only (`border-0 border-b`), no box
+- Grain texture: `opacity-[0.03]` SVG fractalNoise fixed overlay on all pages (`GrainOverlay` component)
+- Shadows: `0 4px 20px rgba(28,27,27,0.06)` default, `0 8px 30px` elevated, `0 14px 44px` modals
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
