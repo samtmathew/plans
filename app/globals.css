@@ -1,52 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Surface tier colors (light mode) */
-    --surface: #ffffff;
-    --surface-container-lowest: #f9f9f9;
-    --surface-container-low: #f3f3f3;
-    --surface-container: #eeeeee;
-    --surface-container-high: #e8e8e8;
-    --surface-container-highest: #e2e2e2;
+    /* Plans brand palette */
+    --bg:            #FCF9F8;
+    --bg-w:          #FFFFFF;
+    --plans-text:    #1C1B1B;
+    --plans-text-2:  #5E5E5E;
+    --plans-accent:  #3D3D8F;
+    --plans-accent-deep: #262477;
+    --plans-surface:     #F0EDEC;
+    --plans-surface-lo:  #F6F3F2;
+    --plans-divider:     #C7C5D3;
 
-    /* Text colors */
-    --on-surface: #1a1c1c;
-    --on-surface-variant: #474747;
-    --text-primary: #000000;
-    --text-secondary: #5f5e5e;
+    /* shadcn/ui required tokens */
+    --background:  #FCF9F8;
+    --foreground:  #1C1B1B;
+    --card:        #FFFFFF;
+    --card-foreground: #1C1B1B;
+    --popover:     #FFFFFF;
+    --popover-foreground: #1C1B1B;
+    --primary:     #1C1B1B;
+    --primary-foreground: #FFFFFF;
+    --secondary:   #F0EDEC;
+    --secondary-foreground: #1C1B1B;
+    --muted:       #F0EDEC;
+    --muted-foreground: #5E5E5E;
+    --accent:      #F0EDEC;
+    --accent-foreground: #1C1B1B;
+    --destructive: #BA1A1A;
+    --border:      #C7C5D3;
+    --input:       #C7C5D3;
+    --ring:        #3D3D8F;
+    --radius:      0.75rem;
 
-    /* UI colors */
-    --outline: #777777;
-    --outline-variant: #c6c6c6;
-    --error: #ba1a1a;
-
-    /* Compatibility with existing design tokens */
-    --background: #ffffff;
-    --foreground: #000000;
-    --card: #f9f9f9;
-    --card-foreground: #000000;
-    --popover: #ffffff;
-    --popover-foreground: #000000;
-    --primary: #000000;
-    --primary-foreground: #ffffff;
-    --secondary: #5f5e5e;
-    --secondary-foreground: #ffffff;
-    --muted: #eeeeee;
-    --muted-foreground: #474747;
-    --accent: #000000;
-    --accent-foreground: #ffffff;
-    --destructive: #ba1a1a;
-    --border: #e2e2e2;
-    --input: #e8e8e8;
-    --ring: #000000;
-    --radius: 0.75rem;
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.03);
-    --shadow-card-hover: 0 20px 60px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.05);
+    /* Legacy tokens kept for existing components */
+    --surface: #FFFFFF;
+    --surface-container-lowest: #F6F3F2;
+    --surface-container-low:    #F0EDEC;
+    --surface-container:        #E8E5E4;
+    --on-surface:               #1C1B1B;
+    --on-surface-variant:       #5E5E5E;
+    --outline:                  #C7C5D3;
+    --outline-variant:          #C7C5D3;
+    --error:                    #BA1A1A;
+    --shadow-card: 0 4px 20px rgba(28,27,27,0.06);
+    --shadow-card-hover: 0 14px 44px rgba(28,27,27,0.14);
   }
 
   .dark {
