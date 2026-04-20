@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Plans - The Curated Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#464747",
+                        "on-background": "#1c1b1b",
+                        "outline": "#777682",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#2e1500",
+                        "tertiary-fixed-dim": "#ffb77a",
+                        "inverse-surface": "#313030",
+                        "on-primary-fixed": "#0d0663",
+                        "on-tertiary-container": "#efa665",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#dcd9d9",
+                        "tertiary-fixed": "#ffdcc2",
+                        "background": "#fcf9f8",
+                        "on-primary-fixed-variant": "#3d3d8f",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-tint": "#5555a8",
+                        "secondary": "#5e5e5e",
+                        "surface": "#fcf9f8",
+                        "error": "#ba1a1a",
+                        "primary": "#262477",
+                        "tertiary": "#4d2700",
+                        "on-surface": "#1c1b1b",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#6d3a00",
+                        "inverse-primary": "#c1c1ff",
+                        "surface-container-high": "#ebe7e7",
+                        "surface-bright": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-secondary-container": "#626262",
+                        "secondary-container": "#e1dfdf",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-variant": "#e5e2e1",
+                        "primary-fixed-dim": "#c1c1ff",
+                        "on-surface-variant": "#464651",
+                        "primary-container": "#3d3d8f",
+                        "primary-fixed": "#e2dfff",
+                        "outline-variant": "#c7c5d3",
+                        "surface-container": "#f0edec",
+                        "secondary-fixed": "#e4e2e2",
+                        "on-primary-container": "#aeaeff",
+                        "secondary-fixed-dim": "#c7c6c6",
+                        "on-tertiary-fixed-variant": "#6d3a00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Instrument Serif", "serif"],
+                        "body": ["Geist", "DM Sans", "sans-serif"],
+                        "label": ["Geist", "DM Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        h1, h2, h3, h4, .font-serif { font-family: 'Instrument Serif', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+        .grain-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .hero-gradient { background: linear-gradient(135deg, rgba(252,249,248,1) 0%, rgba(240,237,236,0.6) 100%); }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col relative overflow-x-hidden">
+<div class="grain-overlay"></div>
+<!-- Navigation (TopNavBar) -->
+<nav class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 py-4 max-w-screen-2xl mx-auto bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_4px_20px_rgba(28,27,27,0.04)]">
+<div class="flex items-center gap-8">
+<a class="text-2xl italic font-serif text-on-surface" href="#">Plans</a>
+</div>
+<div class="flex items-center gap-6">
+<a class="font-label text-secondary hover:text-on-surface transition-colors duration-300 font-medium" href="#">Log in</a>
+<a class="font-label bg-on-surface text-surface-container-lowest px-5 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity flex items-center gap-2 shadow-[0_4px_20px_rgba(28,27,27,0.08)]" href="#">
+                Get started
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</nav>
+<main class="flex-grow pt-32 pb-24">
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8 items-center min-h-[716px]">
+<!-- Hero Content -->
+<div class="flex flex-col items-start z-10">
+<h1 class="text-6xl md:text-8xl font-headline italic leading-[0.9] tracking-tight text-on-surface mb-6">
+                    Make plans.<br/>
+<span class="text-primary-container">Actually go.</span>
+</h1>
+<p class="text-xl md:text-2xl font-body text-secondary mb-10 max-w-md leading-relaxed">
+                    The group planner that doesn't get in the way.
+                </p>
+<div class="flex flex-col sm:flex-row items-center gap-6 w-full sm:w-auto">
+<a class="w-full sm:w-auto text-center font-label bg-on-surface text-surface-container-lowest px-8 py-4 rounded-full font-medium text-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3 shadow-[0_4px_20px_rgba(28,27,27,0.08)]" href="#">
+                        Start planning free
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+<a class="font-label text-secondary hover:text-on-surface transition-colors flex items-center gap-2 group" href="#">
+                        See how it works
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">east</span>
+</a>
+</div>
+</div>
+<!-- Hero Visuals (Overlapping Cards) -->
+<div class="relative h-[500px] w-full hidden md:block perspective-1000">
+<!-- Back Card (Concert) -->
+<div class="absolute top-12 right-0 w-72 bg-surface-container-lowest rounded-xl p-4 shadow-[0_4px_20px_rgba(28,27,27,0.06)] transform rotate-6 translate-x-4 z-10 transition-transform hover:rotate-8 hover:translate-x-6 duration-500">
+<div class="aspect-[4/3] rounded-lg overflow-hidden mb-4 bg-surface-variant">
+<img alt="Crowd at a live music concert with dramatic blue and purple stage lighting" class="w-full h-full object-cover" data-alt="Crowd at a live music concert with dramatic blue and purple stage lighting, energetic atmosphere, wide angle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJfMk684_IPnJg5tpMFU3qg5haAEPbZffWPqLXWEDsrfUSHKMn44pI6E7ZWYa4DP3-gf-og7mIWCYmq-HtH-KkfVbJywp4mAkMcbjba24yakYZE3n0FzZqDCVstMmVCNEVHjjF3dP4Xy5TgeEcvmV2WQC1nwpHPa-QDAArFaBWvmkqRqG43S40-_hQ_97xHbTayBFFizh4giBptZXCYmSU-NOZ3Qx7I27vegrvlW3M5ZJ1rt6nNJRtR6BPVLFjrphZYevag1FstIxp"/>
+</div>
+<div class="flex items-center justify-between mb-1">
+<h3 class="font-headline italic text-xl text-on-surface">Summer Fest</h3>
+<span class="bg-surface-container px-2 py-1 rounded-full text-xs font-label text-secondary">Aug 12</span>
+</div>
+<p class="text-sm font-body text-secondary">4 going</p>
+</div>
+<!-- Middle Card (Weekend Trip) -->
+<div class="absolute top-24 right-20 w-72 bg-surface-container-lowest rounded-xl p-4 shadow-[0_8px_30px_rgba(28,27,27,0.08)] transform -rotate-3 -translate-x-8 z-20 transition-transform hover:-rotate-6 hover:-translate-x-12 duration-500">
+<div class="aspect-[4/3] rounded-lg overflow-hidden mb-4 bg-surface-variant">
+<img alt="Classic van parked near a scenic mountain lake during a road trip" class="w-full h-full object-cover" data-alt="Classic vintage van parked by a serene mountain lake, road trip vibe, warm cinematic lighting, analog film style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBx328GvFic5elqmaqrBS1AlO05eeK7A2Gdtg3EhqyQPPQbjyUp3SD53ER6LsR6gxgM7gNyJUoER9f7rc-LMhOJLCSNsap7RiskvFCPjAZOi-6yVOVDFKCncdeL__Ke-2sUIKocTQzLn6kqmNlUuvjjnS2zlc2Rr96wcn2cBnURbCo_K47unDY9J-OdbWeoSiKJV6hw4Y0ARrCaYAZIdOfdA47vEbkX0y3vAygjsetSIOU34KELEwOy_KTtBywKCMmE9sSSD4LYBdT0"/>
+</div>
+<div class="flex items-center justify-between mb-1">
+<h3 class="font-headline italic text-xl text-on-surface">Cabin Weekend</h3>
+<span class="bg-surface-container px-2 py-1 rounded-full text-xs font-label text-secondary">Oct 24</span>
+</div>
+<p class="text-sm font-body text-secondary">8 going</p>
+</div>
+<!-- Front Card (Birthday) -->
+<div class="absolute top-40 right-40 w-80 bg-surface-container-lowest rounded-xl p-5 shadow-[0_12px_40px_rgba(28,27,27,0.12)] transform rotate-2 z-30 transition-transform hover:rotate-0 hover:-translate-y-2 duration-500">
+<div class="aspect-square rounded-lg overflow-hidden mb-5 bg-surface-variant relative">
+<img alt="Close up of a lit sparkler candle on a birthday cake in a dim room" class="w-full h-full object-cover" data-alt="Close up of glowing sparkler candle on a frosted cake, warm golden light, intimate celebration mood, dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4nvmkU2qFuNTvCBocwBpsxta5KtQ3LbDzTYN5hTN2BnP4x3FSlTGl5PWekW6WfZJuLCFUFIfcM8lOXz9h4GgF0BMYVdxTtbgAyZbmt3eH7sNwlCHi5EPF--hueMBqZu8VHGBbx1lbZjnMdNr9p8yo4n0eTMeevrkfO7EL5cCCPxz_sTXC9gMWr3G8ZjpP05GZTPq-Y_5wS0kVzLK4OrSOEnQQ9EPvMlY1hZpm8_ykIC4_z6S7kbEbmD-f6RfFoIKzVhTqNtzD9vvb"/>
+<div class="absolute bottom-3 left-3 flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-surface-variant overflow-hidden"><img alt="User avatar" class="w-full h-full object-cover" data-alt="Portrait of young woman smiling gently, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDaXXUlQsg0-xaNc4iAMgi2NUZrYnvvhLzUQlreDbA6EiLWtZ6Oed1ktUGULtId-YRznrd-6GbhSWffIL2e2AokXZwHshF3ZB8Uz0Ckg0LwYJ_48HSrKinxSEq7Hp2kTYgJYjjGqDLQmQS3Y_n-RKTDWkM6rIxuR0E3Yx8WhE1BzyfxDs5sb4BPzbm5pUezySLnTi_jWC12pCHxVdxaodqZyR4f6QR5tAMyz6bPdpxLdrrwSrZnyiPG6Q_LkUpkWdDDJPLxRMqIc6O"/></div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-surface-variant overflow-hidden"><img alt="User avatar" class="w-full h-full object-cover" data-alt="Portrait of young man with glasses, neutral expression, soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOWhXvL6hRfEOa0gERrZViCM3HK-eSXgBW9zee2na4-Wg0Tq7imx0b0cdQEUEj3aanNGrzWjH4xaDQ1ozjueLnKXQ13QPleNq1b_cEOio9krjkDUhFSnWcU6ORZbEfie5159RB9ki6KsT88SYt6k60ZRybgdRXwPWSmWam-x6MOnWLiiAOrvGQ1uU3JECsDbI_CtMlnU_YC7fe7KMQVA4uE44D63LVkZmVSjgBfKGZ8vrvDiQ9eAwcPop9DNnpVXPg1dFmAGDiow7N"/></div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-surface-variant overflow-hidden"><img alt="User avatar" class="w-full h-full object-cover" data-alt="Portrait of middle aged woman, warm smile, soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpJFw5_nL_tz3WP3Y3CVLr6K_rdeRI1YDGRItJiC_hU77XBO_TAP79d-LxoBXASg38J2azN_NAd8qR0zYOW6kjsvmHNNpnQoF0Gu6aEvKpYLeAxKLEAkEl6bH-Ar2ypoAF5wdGhG0ValmqBWOo0x4UNhYoxq6nUc-66c0xW9o89oWpd_DpVy2fvdi176U1slvpZjC2-mRA11yRqhXvkxK9_G6USjaOQS6sQwNbYtjiMC3PvDOBnGprGIDwQdnfP_UV8CGY_CsnPotZ"/></div>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<h3 class="font-headline italic text-2xl text-on-surface">Sarah's 30th</h3>
+<span class="bg-primary-container text-on-primary px-3 py-1 rounded-full text-xs font-label font-medium">This weekend</span>
+</div>
+<p class="text-sm font-body text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+                        The Continental, 8pm
+                    </p>
+</div>
+</div>
+</section>
+<!-- Feature Strip -->
+<section class="max-w-7xl mx-auto px-6 mt-32 mb-32">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<!-- Feature 1 -->
+<div class="flex flex-col bg-surface-container-low p-8 rounded-xl">
+<span class="font-headline italic text-4xl text-outline-variant mb-4">01</span>
+<h3 class="font-headline italic text-2xl text-on-surface mb-3">Plans for anything</h3>
+<p class="font-body text-secondary leading-relaxed">From casual dinners to complex week-long trips. Set the vibe, share the link, and watch it come together.</p>
+</div>
+<!-- Feature 2 -->
+<div class="flex flex-col bg-surface-container-low p-8 rounded-xl">
+<span class="font-headline italic text-4xl text-outline-variant mb-4">02</span>
+<h3 class="font-headline italic text-2xl text-on-surface mb-3">Split costs cleanly</h3>
+<p class="font-body text-secondary leading-relaxed">No more chasing Venmo requests. Built-in ledgers keep track of who paid for what seamlessly.</p>
+</div>
+<!-- Feature 3 -->
+<div class="flex flex-col bg-surface-container-low p-8 rounded-xl">
+<span class="font-headline italic text-4xl text-outline-variant mb-4">03</span>
+<h3 class="font-headline italic text-2xl text-on-surface mb-3">Bring everyone in</h3>
+<p class="font-body text-secondary leading-relaxed">Guests don't need an app to RSVP or view details. One simple web link works for everyone.</p>
+</div>
+</div>
+</section>
+<!-- Quote Strip -->
+<section class="bg-on-surface py-24 px-6 w-full relative overflow-hidden">
+<div class="max-w-4xl mx-auto text-center relative z-10">
+<span class="material-symbols-outlined text-4xl text-surface-dim opacity-50 mb-6 block">format_quote</span>
+<h2 class="font-headline italic text-4xl md:text-5xl text-surface-container-lowest leading-tight mb-8">
+                    "It finally feels like I'm planning a hangout with friends, rather than managing a corporate project."
+                </h2>
+<div class="flex items-center justify-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-surface-dim/30">
+<img alt="Reviewer avatar" class="w-full h-full object-cover" data-alt="Portrait of young professional looking off camera, warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkdaeKdczhU74uE4c4bkE9Ri7Ywlw4HlFoJLXOIMm61mWmeboGZdU-CgXzBSRz3zpMW8mXIw4e63fn9JFjLk8d-O2SnXUdPx9mfWTDbbpBiT8_CP4z_IkrvdTlFbhnEtekaVw34peh3SnK5k2JGmKjSSIBXD7wfOCIKWNjfMZ7xkRAl6V7etGv-eHY8UGF4fiEnPXO4bFdeJ02T1hOVyMUDa-s2XWziCZkiN1r6etD_TdeTgq1KfSG9z-o6D1BRztnfWXSVeNppRRq"/>
+</div>
+<div class="text-left">
+<p class="font-body text-surface-container-lowest font-medium">Alex Chen</p>
+<p class="font-body text-surface-dim text-sm">Chronic Over-planner</p>
+</div>
+</div>
+</div>
+<!-- Decorative blur -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-full bg-primary/20 blur-[120px] rounded-full pointer-events-none"></div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="flex flex-col md:flex-row justify-between items-center w-full max-w-7xl mx-auto gap-6 full-width py-12 px-6 mt-auto bg-background text-primary-container font-sans text-xs tracking-wide uppercase border-t border-outline-variant/15">
+<div class="italic font-serif text-lg text-on-surface">Plans</div>
+<div class="text-secondary normal-case tracking-normal">© 2024 Plans. The Curated Ledger.</div>
+<div class="flex gap-6">
+<a class="text-secondary hover:text-primary-container transition-colors" href="#">About</a>
+<a class="text-secondary hover:text-primary-container transition-colors" href="#">Privacy</a>
+<a class="text-secondary hover:text-primary-container transition-colors" href="#">Contact</a>
+<a class="text-secondary hover:text-primary-container transition-colors" href="#">Terms</a>
+</div>
+</footer>
+</body></html>
