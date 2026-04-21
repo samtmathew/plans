@@ -31,6 +31,7 @@ export type Plan = {
   deleted_at: string | null
   cover_photo: string | null
   gallery_photos: string[]
+  kind?: string | null
   // Joined relations (populated when fetched with select)
   organiser?: Profile
   attendees?: PlanAttendee[]
