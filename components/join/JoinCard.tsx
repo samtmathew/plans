@@ -16,6 +16,64 @@ import type { PlanPreviewData } from '@/types'
 
 type GuestState = 'preview' | 'form' | 'pending' | 'approved' | 'rejected'
 
+function HoldTightFlipCard() {
+  const [flipped, setFlipped] = useState(false)
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setFlipped(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  return (
+    <div
+      className="w-full max-w-[420px] mx-auto"
+      style={{ perspective: '1000px', height: 580 }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 800ms cubic-bezier(0.4,0,0.2,1)',
+          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        }}
+      >
+        {/* Front face — blank placeholder so the flip has something to rotate from */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            borderRadius: 16,
+            background: 'var(--plans-surface)',
+          }}
+        />
+
+        {/* Back face — "Hold tight." */}
+        <div
+          className="absolute inset-0 rounded-[16px] bg-[var(--plans-text)] flex flex-col items-center justify-center text-white p-8 text-center"
+          style={{
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            transition: 'transform 800ms cubic-bezier(0.4,0,0.2,1)',
+          }}
+        >
+          <div className="h-14 w-14 rounded-full bg-white/10 flex items-center justify-center mb-4">
+            <Clock className="h-7 w-7 text-white" />
+          </div>
+          <h2 className="font-headline italic text-3xl mb-2">Hold tight.</h2>
+          <p className="text-white/70 text-sm">
+            Your request has been sent. The organiser will approve it soon.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 interface StoredSession {
   guest_token: string
   name: string
@@ -36,6 +94,7 @@ export function JoinCard({ plan, joinToken, authedUser }: Props) {
   const router = useRouter()
   const [state, setState] = useState<GuestState>('preview')
   const [isFlipped, setIsFlipped] = useState(false)
+  const [holdTight, setHoldTight] = useState(false)
   const [guestToken, setGuestToken] = useState<string | null>(null)
   const [guestName, setGuestName] = useState(authedUser?.name ?? '')
 
@@ -90,6 +149,7 @@ export function JoinCard({ plan, joinToken, authedUser }: Props) {
       if (data.status === 'approved') {
         router.push(`/plans/${data.plan_id}`)
       } else {
+        setHoldTight(true)
         setState('pending')
       }
     } catch (err) {
@@ -117,7 +177,7 @@ export function JoinCard({ plan, joinToken, authedUser }: Props) {
     )
     setGuestToken(data.guest_token)
     setGuestName(name)
-    setIsFlipped(false)
+    setHoldTight(true)
     setState('pending')
   }
 
@@ -137,6 +197,10 @@ export function JoinCard({ plan, joinToken, authedUser }: Props) {
         <JoinStatusCard state="rejected" guestName={guestName} />
       </div>
     )
+  }
+
+  if (holdTight) {
+    return <HoldTightFlipCard />
   }
 
   if (state === 'pending') {
