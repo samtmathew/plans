@@ -12,18 +12,16 @@ interface ManageTabsProps {
   plan: Plan
   planId: string
   pendingAttendees: PlanAttendee[]
-  approvedAttendees: PlanAttendee[]
+  approvedAttendees?: PlanAttendee[]
   guestAttendees: GuestAttendee[]
-  joinUrl: string
+  joinUrl?: string
 }
 
 export function ManageTabs({
   plan,
   planId,
   pendingAttendees,
-  approvedAttendees,
   guestAttendees,
-  joinUrl: _joinUrl,
 }: ManageTabsProps) {
   const router = useRouter()
   const [deleteConfirm, setDeleteConfirm] = useState(false)
