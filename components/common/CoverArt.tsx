@@ -30,7 +30,7 @@ interface CoverArtProps {
 export function CoverArt({ seed = 'x', className, grayscale = false, label }: CoverArtProps) {
   const h = hashSeed(seed)
   const p = COVER_PALETTES[h % COVER_PALETTES.length]
-  const kind = h % 6
+  const kind = (h ^ (h >>> 16)) % 6
 
   return (
     <div
@@ -86,7 +86,7 @@ export function CoverArt({ seed = 'x', className, grayscale = false, label }: Co
           style={{
             position: 'absolute', bottom: 12, left: 12,
             fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic',
-            fontSize: 22, color: p.a, mixBlendMode: 'multiply',
+            fontSize: 22, color: p.a,
           }}
         >
           {label}
