@@ -3,13 +3,18 @@ import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CostBreakdown } from '@/components/plan/CostBreakdown'
 import { CopyLink } from '@/components/common/CopyLink'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { UserAvatar } from '@/components/common/Avatar'
+import { CoverArt } from '@/components/common/CoverArt'
 import { AttendeeActions } from './AttendeeActions'
 import { DeletePlanButton } from './DeletePlanButton'
-import type { Plan, PlanAttendee } from '@/types'
+import { ArrowLeft, Share2, Settings } from 'lucide-react'
+import type { Plan, PlanAttendee, PlanItem } from '@/types'
+import { calcEstimatedPerPerson } from '@/lib/utils/cost'
+import { formatCurrency } from '@/lib/utils/format'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -22,12 +27,7 @@ export default async function PlanDetailPage({ params }: Props) {
 
   const { data: plan, error: planError } = await supabase
     .from('plans')
-    .select(`
-      *,
-      organiser:profiles!organiser_id(*),
-      attendees:plan_attendees(*, profile:profiles!user_id(*)),
-      items:plan_items(*)
-    `)
+    .select(`*, organiser:profiles!organiser_id(*), attendees:plan_attendees(*, profile:profiles!user_id(*)), items:plan_items(*)`)
     .eq('id', id)
     .single()
 
@@ -35,34 +35,25 @@ export default async function PlanDetailPage({ params }: Props) {
   if (!plan || plan.deleted_at) notFound()
 
   const isOrganiser = plan.organiser_id === user!.id
-  const myAttendee = (plan.attendees as PlanAttendee[]).find(
-    (a) => a.user_id === user!.id
-  )
+  const myAttendee = (plan.attendees as PlanAttendee[]).find((a) => a.user_id === user!.id)
   const isPending = !isOrganiser && myAttendee?.status === 'pending'
 
-  if (!isOrganiser && !myAttendee) {
-    redirect(`/join/${plan.join_token}`)
-  }
+  if (!isOrganiser && !myAttendee) redirect(`/join/${plan.join_token}`)
+  if (isPending) redirect(`/plans/${id}/pending`)
 
-  // If pending, redirect to pending page
-  if (isPending) {
-    redirect(`/plans/${id}/pending`)
-  }
-
-  const approvedAttendees = (plan.attendees as PlanAttendee[]).filter(
-    (a) => a.status === 'approved'
-  )
+  const approvedAttendees = (plan.attendees as PlanAttendee[]).filter((a) => a.status === 'approved')
   const approvedCount = approvedAttendees.length
+  const galleryPhotos: string[] = plan.gallery_photos ?? []
+  const planItems = (plan.items ?? []) as PlanItem[]
+  const costPerPerson = calcEstimatedPerPerson(planItems, approvedCount)
 
   const headersList = await headers()
   const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost:3000'
   const proto = headersList.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https')
   const origin = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`
   const joinUrl = `${origin}/join/${plan.join_token}`
-  const avatarStackAttendees = approvedAttendees.slice(0, 7)
-  const extraCount = Math.max(0, approvedCount - 7)
-  const galleryPhotos: string[] = plan.gallery_photos ?? []
-  const planItems = (plan.items ?? []).map((i: import('@/types').PlanItem) => ({
+
+  const planItemsForBreakdown = planItems.map((i) => ({
     id: i.id,
     title: i.title,
     price: i.price,
@@ -71,271 +62,223 @@ export default async function PlanDetailPage({ params }: Props) {
     sort_order: i.sort_order,
   }))
 
-  // Organiser view
-  if (isOrganiser) {
-    return (
-      <div className="space-y-8 pb-16">
-        {/* Cover photo */}
-        {plan.cover_photo && (
-          <div className="w-full aspect-video rounded-lg overflow-hidden -mx-4 md:mx-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={plan.cover_photo} alt={plan.title} className="w-full h-full object-cover" />
-          </div>
+  return (
+    <div className="pb-16 -mx-6">
+      {/* Cover hero — 360px, full-bleed */}
+      <div className="relative w-full overflow-hidden" style={{ height: 360 }}>
+        {plan.cover_photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={plan.cover_photo} alt={plan.title} className="w-full h-full object-cover" />
+        ) : (
+          <CoverArt seed={plan.id} className="w-full h-full" />
         )}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)' }}
+        />
 
-        {/* Header with title and actions */}
-        <div className="space-y-4">
-          {/* Title and action buttons */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight leading-tight mb-2">
-                {plan.title}
-              </h1>
-              {plan.description && (
-                <p className="text-base text-muted-foreground max-w-2xl">{plan.description}</p>
-              )}
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/plans/${id}/manage`}>Manage</Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/plans/${id}/edit`}>Edit</Link>
-              </Button>
-              <DeletePlanButton planId={id} />
-            </div>
-          </div>
-
-          {/* Breadcrumb metadata */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground border-y py-2">
-            <StatusBadge status={plan.status} />
-            {plan.start_date && (
-              <span>{new Date(plan.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+        {/* Top bar — frosted glass buttons */}
+        <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+          <Link
+            href="/home"
+            className="flex items-center gap-1.5 text-white text-sm font-medium rounded-full px-3 py-1.5"
+            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            All plans
+          </Link>
+          <div className="flex gap-2">
+            {plan.join_token && (
+              <Link
+                href={joinUrl}
+                className="flex items-center gap-1.5 text-white text-sm font-medium rounded-full px-3 py-1.5"
+                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              >
+                <Share2 className="h-4 w-4" />
+                Share
+              </Link>
+            )}
+            {isOrganiser && (
+              <Link
+                href={`/plans/${id}/manage`}
+                className="flex items-center gap-1.5 text-white text-sm font-medium rounded-full px-3 py-1.5"
+                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              >
+                <Settings className="h-4 w-4" />
+                Manage
+              </Link>
             )}
           </div>
-
-          {/* Attendee strip */}
-          {approvedCount > 0 && (
-            <div className="flex items-center gap-4 border-y py-3">
-              <div className="flex -space-x-2">
-                {avatarStackAttendees.map((a) => (
-                  <Link
-                    key={a.id}
-                    href={`/profile/${a.user_id}`}
-                    className="block rounded-full ring-2 ring-background hover:ring-primary transition-colors"
-                  >
-                    <UserAvatar
-                      url={a.profile?.avatar_url}
-                      name={a.profile?.name ?? '?'}
-                      size="sm"
-                    />
-                  </Link>
-                ))}
-              </div>
-              <div className="text-sm">
-                <span className="font-medium">
-                  {approvedCount} {approvedCount === 1 ? 'person going' : 'people going'}
-                </span>
-                {extraCount > 0 && (
-                  <span className="text-muted-foreground"> +{extraCount} more</span>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Organiser content: full itinerary, costs, gallery, attendees */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Itinerary</h2>
-          {plan.itinerary ? (
-            <div className="prose prose-sm max-w-none text-sm whitespace-pre-wrap leading-relaxed text-foreground">
-              {plan.itinerary}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No itinerary added yet.</p>
+        {/* Bottom — kind eyebrow + serif title + meta */}
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
+          {plan.kind && (
+            <p className="text-[10px] font-semibold uppercase tracking-[1.4px] text-white/70 mb-1">
+              {plan.kind}
+            </p>
           )}
-        </section>
-
-        {/* Cost breakdown */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Cost breakdown</h2>
-          <div className="bg-surface-container-lowest rounded-lg p-4">
-            <CostBreakdown
-              items={planItems}
-              approvedAttendeeCount={approvedCount}
-              readOnly
-            />
-          </div>
-        </section>
-
-        {/* Gallery */}
-        {galleryPhotos.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Gallery</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {galleryPhotos.map((url, i) => (
-                <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Attendees section */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Attendees</h2>
-          <AttendeeActions
-            plan={plan as unknown as Plan}
-            isOrganiser={isOrganiser}
-            currentUserId={user!.id}
-          />
-          {plan.join_token && (
-            <div className="space-y-2 pt-2">
-              <p className="text-sm font-medium">Share this plan</p>
-              <CopyLink url={joinUrl} />
-            </div>
-          )}
-        </section>
-      </div>
-    )
-  }
-
-  // Attendee view
-  return (
-    <div className="space-y-8 pb-16">
-      {/* Cover photo */}
-      {plan.cover_photo && (
-        <div className="w-full aspect-video rounded-lg overflow-hidden -mx-4 md:mx-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={plan.cover_photo} alt={plan.title} className="w-full h-full object-cover" />
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="space-y-4">
-        {/* Title and organiser */}
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight leading-tight mb-2">
+          <h1 className="font-headline italic text-[clamp(28px,5vw,56px)] text-white leading-tight mb-2">
             {plan.title}
           </h1>
-          {plan.description && (
-            <p className="text-base text-muted-foreground max-w-2xl">{plan.description}</p>
-          )}
-          {plan.organiser && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3">
-              <UserAvatar url={plan.organiser.avatar_url} name={plan.organiser.name} size="sm" />
-              <span>Organised by {plan.organiser.name}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Breadcrumb metadata */}
-        <div className="flex items-center gap-4 text-xs text-muted-foreground border-y py-2">
-          {plan.start_date && (
-            <span>{new Date(plan.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-          )}
-        </div>
-
-        {/* Attendee strip */}
-        {approvedCount > 0 && (
-          <div className="flex items-center gap-4 border-y py-3">
-            <div className="flex -space-x-2">
-              {avatarStackAttendees.map((a) => (
-                <Link
-                  key={a.id}
-                  href={`/profile/${a.user_id}`}
-                  className="block rounded-full ring-2 ring-background hover:ring-primary transition-colors"
-                >
-                  <UserAvatar
-                    url={a.profile?.avatar_url}
-                    name={a.profile?.name ?? '?'}
-                    size="sm"
-                  />
-                </Link>
-              ))}
-            </div>
-            <div className="text-sm">
-              <span className="font-medium">
-                {approvedCount} {approvedCount === 1 ? 'person going' : 'people going'}
-              </span>
-              {extraCount > 0 && (
-                <span className="text-muted-foreground"> +{extraCount} more</span>
-              )}
-            </div>
+          <div className="flex flex-wrap items-center gap-3 text-white/80 text-sm">
+            {plan.start_date && (
+              <span>{new Date(plan.start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+            )}
+            <span>·</span>
+            <span>{approvedCount} {approvedCount === 1 ? 'person' : 'people'} going</span>
+            {plan.organiser && (
+              <>
+                <span>·</span>
+                <span>by {plan.organiser.name}</span>
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* 12-column layout: itinerary (8) + sticky costs sidebar (4) on desktop, stacked on mobile */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Itinerary - 8 columns on desktop */}
-        <div className="md:col-span-8 space-y-4">
-          <h2 className="text-lg font-semibold">Itinerary</h2>
-          {plan.itinerary ? (
-            <div className="space-y-4">
-              {/* Timeline itinerary with left border and circles */}
-              <div className="relative pl-6">
-                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-border"></div>
-                <div className="space-y-6">
-                  {plan.itinerary.split('\n').filter((line: string) => line.trim()).map((line: string, idx: number) => (
-                    <div key={idx} className="relative">
-                      <div className="absolute -left-4 top-1 w-2.5 h-2.5 rounded-full bg-primary"></div>
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground">
-                        {line}
+      {/* Tabs section */}
+      <div className="px-6 pt-6">
+        <Tabs defaultValue="details">
+          <TabsList className="w-full justify-start rounded-none h-auto bg-transparent pb-0 mb-6 gap-0 border-b border-[var(--plans-divider)]">
+            {(['details', 'costs', 'people', 'gallery'] as const).map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="capitalize rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--plans-text)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-4 pb-3 text-sm font-medium"
+              >
+                {tab}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {/* Details tab */}
+          <TabsContent value="details">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-8">
+              <div className="space-y-6">
+                {plan.description && (
+                  <p className="text-[var(--plans-text-2)] leading-relaxed">{plan.description}</p>
+                )}
+                {plan.itinerary && (
+                  <div className="space-y-3">
+                    <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--plans-text-2)]">Itinerary</h2>
+                    <div className="relative pl-5">
+                      <div className="absolute left-0 top-0 bottom-0 w-px bg-[var(--plans-divider)]" />
+                      <div className="space-y-5">
+                        {plan.itinerary.split('\n').filter((l: string) => l.trim()).map((line: string, idx: number) => (
+                          <div key={idx} className="relative">
+                            <div className="absolute -left-[22px] top-1.5 w-2.5 h-2.5 rounded-full bg-[var(--plans-text)] ring-2 ring-white" />
+                            <p className="text-sm text-[var(--plans-text)] leading-relaxed">{line}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Sticky sidebar "At a glance" */}
+              <div className="md:sticky md:top-20 h-fit">
+                <div className="border border-[var(--plans-divider)] rounded-xl p-5 space-y-4">
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--plans-text-2)]">At a glance</h3>
+                  {plan.start_date && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-0.5">When</p>
+                      <p className="text-sm font-medium text-[var(--plans-text)]">
+                        {new Date(plan.start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                       </p>
                     </div>
-                  ))}
+                  )}
+                  {costPerPerson > 0 && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-0.5">Cost per person</p>
+                      <p className="text-xl font-bold text-[var(--plans-accent)]">{formatCurrency(costPerPerson)}</p>
+                    </div>
+                  )}
+                  <StatusBadge status={plan.status} />
+                  {approvedAttendees.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {approvedAttendees.slice(0, 7).map((a) => (
+                        <UserAvatar key={a.id} url={a.profile?.avatar_url} name={a.profile?.name ?? '?'} size="sm" />
+                      ))}
+                    </div>
+                  )}
+                  {plan.join_token && <CopyLink url={joinUrl} />}
                 </div>
               </div>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No itinerary available.</p>
-          )}
-        </div>
+          </TabsContent>
 
-        {/* Sticky costs sidebar - 4 columns on desktop */}
-        <div className="md:col-span-4">
-          <div className="md:sticky md:top-20 space-y-4">
-            <h2 className="text-lg font-semibold">Costs</h2>
-            <div className="bg-surface-container-lowest rounded-lg p-4">
+          {/* Costs tab */}
+          <TabsContent value="costs">
+            <div className="max-w-xl space-y-6">
               {planItems.length > 0 ? (
-                <CostBreakdown
-                  items={planItems}
-                  approvedAttendeeCount={approvedCount}
-                  readOnly
-                />
+                <>
+                  <div className="border border-[var(--plans-divider)] rounded-xl overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-[var(--plans-surface)]">
+                        <tr>
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] font-semibold">Item</th>
+                          <th className="text-right px-4 py-3 text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] font-semibold">Amount</th>
+                          <th className="text-right px-4 py-3 text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] font-semibold">Split</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {planItems.map((item, i) => (
+                          <tr key={item.id} className={i % 2 === 0 ? '' : 'bg-[var(--plans-surface)]/30'}>
+                            <td className="px-4 py-3 text-[var(--plans-text)]">{item.title}</td>
+                            <td className="px-4 py-3 text-right font-medium text-[var(--plans-text)]">{formatCurrency(item.price)}</td>
+                            <td className="px-4 py-3 text-right text-[var(--plans-text-2)] text-xs">{item.pricing_type === 'per_head' ? 'Per head' : 'Whole group'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {costPerPerson > 0 && (
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-1">Total per person</p>
+                      <p className="font-headline italic text-4xl text-[var(--plans-accent)]">{formatCurrency(costPerPerson)}</p>
+                    </div>
+                  )}
+                  <CostBreakdown items={planItemsForBreakdown} approvedAttendeeCount={approvedCount} readOnly />
+                </>
               ) : (
-                <p className="text-sm text-muted-foreground">No cost items added.</p>
+                <p className="text-sm text-[var(--plans-text-2)]">No cost items added.</p>
               )}
             </div>
-          </div>
-        </div>
-      </div>
+          </TabsContent>
 
-      {/* Gallery */}
-      {galleryPhotos.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Gallery</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {galleryPhotos.map((url, i) => (
-              <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="w-full h-full object-cover" />
+          {/* People tab */}
+          <TabsContent value="people">
+            <AttendeeActions plan={plan as unknown as Plan} isOrganiser={isOrganiser} currentUserId={user!.id} />
+          </TabsContent>
+
+          {/* Gallery tab */}
+          <TabsContent value="gallery">
+            {galleryPhotos.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {galleryPhotos.map((url, i) => (
+                  <div key={i} className="aspect-square rounded-lg overflow-hidden bg-[var(--plans-surface)]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            ) : (
+              <p className="text-sm text-[var(--plans-text-2)]">No gallery photos yet.</p>
+            )}
+          </TabsContent>
+        </Tabs>
 
-      {/* Share link for approved members */}
-      {plan.join_token && (
-        <section className="space-y-2 pt-4 border-t">
-          <p className="text-sm font-medium">Share this plan</p>
-          <CopyLink url={joinUrl} />
-        </section>
-      )}
+        {isOrganiser && (
+          <div className="mt-8 flex gap-3">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/plans/${id}/edit`}>Edit plan</Link>
+            </Button>
+            <DeletePlanButton planId={id} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
