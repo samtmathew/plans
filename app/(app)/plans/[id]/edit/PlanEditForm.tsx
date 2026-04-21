@@ -16,7 +16,15 @@ import { GalleryUpload } from '@/components/plan/GalleryUpload'
 import { AttendeeSearch } from '@/components/plan/AttendeeSearch'
 import { UserAvatar } from '@/components/common/Avatar'
 import { X, MapPin, Calendar } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { Plan, PlanItem, Profile } from '@/types'
+
+const steps = [
+  { n: '01', label: 'Basics' },
+  { n: '02', label: 'Costs' },
+  { n: '03', label: 'People' },
+  { n: '04', label: 'Review' },
+]
 
 interface PlanEditFormProps {
   plan: Plan
@@ -47,9 +55,25 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>(plan.gallery_photos ?? [])
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [activeStep, setActiveStep] = useState(1)
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
+  }, [])
+
+  useEffect(() => {
+    const observers: IntersectionObserver[] = []
+    steps.forEach((_, i) => {
+      const el = document.getElementById(`section-0${i + 1}`)
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveStep(i + 1) },
+        { threshold: 0.3, rootMargin: '-80px 0px 0px 0px' }
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+    return () => observers.forEach(obs => obs.disconnect())
   }, [])
 
   const {
@@ -109,9 +133,41 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-24">
+      <div className="flex gap-8 md:gap-12">
+        {/* Desktop step sidebar */}
+        <div className="hidden md:block w-[220px] shrink-0">
+          <div className="sticky top-20 space-y-1">
+            <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-4 px-3">
+              Edit plan
+            </p>
+            {steps.map((step, i) => (
+              <button
+                key={step.n}
+                type="button"
+                onClick={() => document.getElementById(`section-0${i + 1}`)?.scrollIntoView({ behavior: 'smooth' })}
+                className={cn(
+                  'w-full text-left flex items-center gap-3 py-2 px-3 rounded-lg transition-colors',
+                  activeStep === i + 1 ? 'bg-[var(--plans-surface)]' : 'hover:bg-[var(--plans-surface-lo)]'
+                )}
+              >
+                <span className={cn('font-headline italic text-sm', activeStep === i + 1 ? 'text-[var(--plans-text)]' : 'text-[var(--plans-text-2)]')}>
+                  {step.n}
+                </span>
+                <span className={cn('text-sm font-medium flex-1', activeStep === i + 1 ? 'text-[var(--plans-text)]' : 'text-[var(--plans-text-2)]')}>
+                  {step.label}
+                </span>
+                {activeStep === i + 1 && (
+                  <div className="w-0.5 h-4 bg-[var(--plans-text)] rounded-full" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 min-w-0">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-24">
         {/* Section 01 — Basics */}
-        <section className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <section id="section-01" className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left: Label (sticky) */}
           <div className="md:col-span-4 md:sticky md:top-20 h-fit">
             <div className="space-y-3">
@@ -208,7 +264,7 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
         </section>
 
         {/* Section 02 — Costs */}
-        <section className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <section id="section-02" className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left: Label (sticky) */}
           <div className="md:col-span-4 md:sticky md:top-20 h-fit">
             <div className="space-y-3">
@@ -233,7 +289,7 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
         </section>
 
         {/* Section 03 — Attendees */}
-        <section className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <section id="section-03" className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left: Label (sticky) */}
           <div className="md:col-span-4 md:sticky md:top-20 h-fit">
             <div className="space-y-3">
@@ -328,7 +384,7 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
         </section>
 
         {/* Section 04 — Review */}
-        <section className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <section id="section-04" className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left: Label (sticky) */}
           <div className="md:col-span-4 md:sticky md:top-20 h-fit">
             <div className="space-y-3">
@@ -431,6 +487,8 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
           </div>
         </section>
       </form>
+        </div>
+      </div>
     </div>
   )
 }
