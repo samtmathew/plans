@@ -1,10 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
-import Image from 'next/image'
+import Link from 'next/link'
 import { ManageTabs } from './ManageTabs'
-import { ManageActions } from './ManageActions'
-import { Calendar } from 'lucide-react'
+import { ArrowLeft, Settings2 } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import type { Plan, PlanAttendee, GuestAttendee } from '@/types'
 
@@ -36,11 +35,6 @@ export default async function ManagePlanPage({ params }: Props) {
     redirect(`/plans/${id}`)
   }
 
-  const startDate = plan.start_date ? new Date(plan.start_date) : null
-  const dateRange = startDate
-    ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'No date set'
-
   const pendingAttendees = (plan.attendees as PlanAttendee[]).filter(
     (a) => a.status === 'pending' && a.joined_via !== 'organiser_added'
   ) || []
@@ -53,10 +47,6 @@ export default async function ManagePlanPage({ params }: Props) {
     .eq('plan_id', id)
     .order('created_at', { ascending: false })
 
-  // Calculate total cost
-  const totalCost = (plan.items as Array<{ price: number }>|| []).reduce((sum: number, item) => sum + item.price, 0)
-  const perPersonCost = approvedAttendees.length > 0 ? totalCost / approvedAttendees.length : 0
-
   const headersList = await headers()
   const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost:3000'
   const proto = headersList.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https')
@@ -64,54 +54,24 @@ export default async function ManagePlanPage({ params }: Props) {
   const joinUrl = `${origin}/join/${plan.join_token}`
 
   return (
-    <div className="space-y-8 pb-16">
-      {/* Hero Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-        {/* Cover Image */}
-        <div className="rounded-lg overflow-hidden bg-muted h-64 md:h-auto">
-          {plan.cover_photo && (
-            <Image
-              src={plan.cover_photo}
-              alt={plan.title}
-              width={600}
-              height={400}
-              className="w-full h-full object-cover"
-              priority
-            />
-          )}
-        </div>
-
-        {/* Plan Summary */}
-        <div className="space-y-6 flex flex-col justify-between">
-          <div>
-            <div className="mb-3">
-              <StatusBadge status={plan.status} />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold font-headline text-on-surface -tracking-[0.04em] leading-tight">
+    <div className="pb-16 space-y-6">
+      {/* Back link + header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <Link
+            href={`/plans/${id}`}
+            className="inline-flex items-center gap-1.5 text-sm text-[var(--plans-text-2)] hover:text-[var(--plans-text)] transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to plan
+          </Link>
+          <div className="flex items-center gap-3">
+            <Settings2 className="h-5 w-5 text-[var(--plans-text-2)]" />
+            <h1 className="font-headline italic text-2xl text-[var(--plans-text)] leading-tight">
               {plan.title}
             </h1>
+            <StatusBadge status={plan.status} />
           </div>
-
-          <div className="space-y-3 text-sm text-on-surface-variant">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>{dateRange}</span>
-            </div>
-
-            <div className="space-y-1">
-              <p>{approvedAttendees.length} approved attendees</p>
-              <p className="text-base font-headline text-on-surface">
-                ${totalCost.toFixed(2)} total cost
-              </p>
-              {approvedAttendees.length > 0 && (
-                <p className="text-xs text-on-surface-variant">
-                  ${perPersonCost.toFixed(2)} per person
-                </p>
-              )}
-            </div>
-          </div>
-
-          <ManageActions plan={plan as Plan} />
         </div>
       </div>
 
