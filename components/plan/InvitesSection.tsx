@@ -50,10 +50,7 @@ export function InvitesSection({ initialInvites }: Props) {
       <h2 className="font-headline text-2xl font-bold text-foreground tracking-tight mb-4">
         Invites
       </h2>
-      <div
-        className="flex gap-3 overflow-x-auto pb-2"
-        style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' } as React.CSSProperties}
-      >
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {invites.map((invite) => (
           <InviteCard
             key={invite.attendee_id}

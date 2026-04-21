@@ -31,6 +31,11 @@ export default async function HomePage() {
     supabase.from('profiles').select('name').eq('id', user!.id).single(),
   ])
 
+  if (organiserResult.error) console.error('organiserPlans error:', organiserResult.error.message)
+  if (attendeeResult.error) console.error('attendeePlans error:', attendeeResult.error.message)
+  if (inviteResult.error) console.error('invites error:', inviteResult.error.message)
+  if (pendingLinkResult.error) console.error('pendingLink error:', pendingLinkResult.error.message)
+
   const firstName = (profileResult.data?.name ?? '').split(' ')[0] || 'there'
 
   type RawInviteRow = { id: string; plan: { id: string; title: string; cover_photo: string | null; start_date: string | null; organiser: { name: string; avatar_url: string | null } | null } | null }
