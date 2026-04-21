@@ -206,7 +206,7 @@
                 box-shadow 450ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .plan-card-rot:hover {
-    transform: rotate(0deg) translateY(-8px);
+    transform: translateY(-4px) rotate(0deg);
   }
 }
 
