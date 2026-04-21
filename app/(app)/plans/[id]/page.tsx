@@ -4,7 +4,6 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CostBreakdown } from '@/components/plan/CostBreakdown'
 import { CopyLink } from '@/components/common/CopyLink'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { UserAvatar } from '@/components/common/Avatar'
@@ -52,15 +51,6 @@ export default async function PlanDetailPage({ params }: Props) {
   const proto = headersList.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https')
   const origin = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`
   const joinUrl = `${origin}/join/${plan.join_token}`
-
-  const planItemsForBreakdown = planItems.map((i) => ({
-    id: i.id,
-    title: i.title,
-    price: i.price,
-    pricing_type: i.pricing_type,
-    description: i.description,
-    sort_order: i.sort_order,
-  }))
 
   return (
     <div className="pb-16 -mx-6">
@@ -240,7 +230,6 @@ export default async function PlanDetailPage({ params }: Props) {
                       <p className="font-headline italic text-4xl text-[var(--plans-accent)]">{formatCurrency(costPerPerson)}</p>
                     </div>
                   )}
-                  <CostBreakdown items={planItemsForBreakdown} approvedAttendeeCount={approvedCount} readOnly />
                 </>
               ) : (
                 <p className="text-sm text-[var(--plans-text-2)]">No cost items added.</p>
