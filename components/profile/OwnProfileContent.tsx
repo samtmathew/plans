@@ -35,6 +35,7 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
   const initials = getInitials(profile.name)
   const hostingCount = plans.length
   const attendingCount = attendingPlans.length
+  const [activeTab, setActiveTab] = useState('plans')
 
   // Edit form state
   const [name, setName] = useState(profile.name)
@@ -117,6 +118,12 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
               <p className="text-sm text-[var(--plans-text-2)] mt-1 max-w-md">{profile.bio}</p>
             )}
           </div>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className="shrink-0 text-sm font-medium border border-[var(--plans-divider)] rounded-full px-4 py-1.5 text-[var(--plans-text)] hover:bg-[var(--plans-surface)] transition-colors"
+          >
+            Edit profile
+          </button>
         </div>
 
         {/* Stats strip */}
@@ -135,7 +142,7 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="plans">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full justify-start rounded-none h-auto bg-transparent pb-0 mb-6 gap-0 border-b border-[var(--plans-divider)]">
             {(['plans', 'settings'] as const).map((tab) => (
               <TabsTrigger
