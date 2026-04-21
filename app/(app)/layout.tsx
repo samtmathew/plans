@@ -25,10 +25,7 @@ async function NavBar({ profile }: { profile: Profile }) {
   const inviteCount = count ?? 0
 
   return (
-    <header
-      className="sticky top-0 z-50 border-b border-[var(--plans-divider)]"
-      style={{ background: 'rgba(252,249,248,0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-    >
+    <header className="nav-frosted sticky top-0 z-50 border-b border-[var(--plans-divider)]">
       <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link href="/home" className="font-headline font-semibold text-lg tracking-tight text-[var(--plans-text)]">
           Plans
@@ -89,7 +86,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!profile) redirect('/onboarding')
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen bg-plans-bg">
       <NavBar profile={profile} />
       <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
     </div>
