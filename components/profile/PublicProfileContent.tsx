@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { Profile, Plan } from '@/types'
-import { UserAvatar } from '@/components/common/Avatar'
-import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PlanCard } from '@/components/plan/PlanCard'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { PlanCard } from '@/components/plan/PlanCard'
+import type { Profile, Plan } from '@/types'
 
 interface PublicProfileContentProps {
   profile: Profile
@@ -15,41 +14,30 @@ interface PublicProfileContentProps {
   plans?: Plan[]
 }
 
-function calculateAge(dateOfBirth: string | null): number | null {
-  if (!dateOfBirth) return null
-  const dob = new Date(dateOfBirth)
-  const today = new Date()
-  let age = today.getFullYear() - dob.getFullYear()
-  const monthDiff = today.getMonth() - dob.getMonth()
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-    age--
-  }
-  return age
+const AVATAR_BGS = ['#E5D5C3', '#C4CFEA', '#EEB5B5', '#B8D4C6', '#F5D78A', '#D0C5E5', '#F4B8A3', '#BFD4A3']
+
+function hashName(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = ((h * 31) + s.charCodeAt(i)) >>> 0
+  return h
 }
 
-function formatGender(gender: string | null): string {
-  if (!gender) return ''
-  return gender
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+function getInitials(name: string): string {
+  return name.trim().split(/\s+/).map(n => n[0] ?? '').join('').slice(0, 2).toUpperCase() || '?'
 }
 
 export function PublicProfileContent({
   profile,
   currentUserId,
-  plans = []
+  plans = [],
 }: PublicProfileContentProps) {
   const [isCollaborator, setIsCollaborator] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
   const router = useRouter()
 
-  const age = calculateAge(profile.date_of_birth)
-  const genderText = formatGender(profile.gender)
-  const ageAndGender = age && genderText ? `${age}, ${genderText}` : age ? `${age}` : genderText
-  
-  const banner = profile.photos?.[0] || null
-  const isColorBanner = banner?.startsWith('#')
+  const bannerColor = profile.avatar_color || AVATAR_BGS[hashName(profile.name) % AVATAR_BGS.length]
+  const initials = getInitials(profile.name)
+  const hostingCount = plans.length
 
   useEffect(() => {
     if (!currentUserId) {
@@ -59,7 +47,7 @@ export function PublicProfileContent({
 
     async function checkCollaborator() {
       const supabase = createClient()
-      
+
       const { data, error } = await supabase
         .from('plan_attendees')
         .select(`
@@ -83,119 +71,101 @@ export function PublicProfileContent({
     checkCollaborator()
   }, [currentUserId, profile.id])
 
-  async function handleJoin() {
+  async function handleMessage() {
     if (!currentUserId) {
       router.push('/login')
       return
     }
-    toast.info('Join functionality coming soon')
+    toast.info('Messaging coming soon')
   }
 
   return (
-    <div className="w-full max-w-screen-2xl mx-auto space-y-16">
-      {/* Profile Header Section */}
-      <section className="bg-surface rounded-3xl overflow-hidden shadow-sm border border-outline-variant/20">
-        <div className="relative">
-          {/* Banner Area */}
-          <div className="w-full h-48 md:h-64 bg-surface-container-low relative">
-            {banner ? (
-              isColorBanner ? (
-                <div className="w-full h-full" style={{ backgroundColor: banner }} />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={banner} alt={`${profile.name}'s banner`} className="w-full h-full object-cover" />
-              )
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-surface to-surface-container-low" />
+    <div className="-mx-6 -mt-8">
+      {/* Banner */}
+      <div className="relative h-[200px]" style={{ background: bannerColor }}>
+        <div className="absolute inset-0 opacity-10">
+          <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" className="w-full h-full">
+            <circle cx="350" cy="60" r="80" fill="currentColor" opacity="0.4"/>
+            <circle cx="80" cy="160" r="60" fill="currentColor" opacity="0.3"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* Avatar — overlaps banner by 56px */}
+      <div className="px-6">
+        <div className="relative -mt-14 mb-4">
+          <div
+            className="h-[120px] w-[120px] rounded-full flex items-center justify-center font-headline italic text-3xl ring-[6px] ring-white shadow-md overflow-hidden"
+            style={{ background: bannerColor, color: '#2E2E2E' }}
+          >
+            {profile.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatar_url} alt={profile.name} className="h-full w-full rounded-full object-cover" />
+            ) : initials}
+          </div>
+        </div>
+
+        {/* Name + bio + actions */}
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h1 className="font-headline text-2xl font-semibold text-[var(--plans-text)]">{profile.name}</h1>
+            {profile.bio && (
+              <p className="text-sm text-[var(--plans-text-2)] mt-1 max-w-md">{profile.bio}</p>
             )}
           </div>
+          {!isChecking && currentUserId && currentUserId !== profile.id && (
+            <button
+              onClick={handleMessage}
+              className="shrink-0 text-sm font-medium border border-[var(--plans-divider)] rounded-full px-4 py-1.5 text-[var(--plans-text)] hover:bg-[var(--plans-surface)] transition-colors"
+            >
+              {isCollaborator ? 'Message' : 'Message'}
+            </button>
+          )}
+        </div>
 
-          {/* Avatar Area */}
-          <div className="absolute -bottom-16 left-6 md:left-12">
-            <div className="rounded-full bg-surface p-1 shadow-md">
-              <UserAvatar url={profile.avatar_url} name={profile.name} size="xl" className="h-32 w-32 md:h-40 md:w-40 border-4 border-surface" />
+        {/* Stats strip */}
+        <div className="grid grid-cols-4 border-t border-b border-[var(--plans-divider)] py-4 mb-6">
+          {[
+            { label: 'Hosting', value: hostingCount },
+            { label: 'Attending', value: 0 },
+            { label: 'Past plans', value: 0 },
+            { label: 'Friends', value: 0 },
+          ].map(({ label, value }) => (
+            <div key={label} className="text-center">
+              <p className="font-headline text-2xl font-bold text-[var(--plans-text)]">{value}</p>
+              <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mt-0.5">{label}</p>
             </div>
-          </div>
+          ))}
         </div>
 
-        {/* Content Area */}
-        <div className="pt-24 px-6 md:px-12 pb-8">
-          <div className="flex flex-col md:flex-row gap-8 justify-between items-start">
-            <div className="flex-1 space-y-4 max-w-2xl">
-              <div>
-                <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter mb-2">{profile.name}</h1>
-                {ageAndGender && (
-                  <p className="text-neutral-500 font-medium tracking-tight">{ageAndGender}</p>
-                )}
+        {/* Tabs */}
+        <Tabs defaultValue="plans">
+          <TabsList className="w-full justify-start rounded-none h-auto bg-transparent pb-0 mb-6 gap-0 border-b border-[var(--plans-divider)]">
+            <TabsTrigger
+              value="plans"
+              className="capitalize rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--plans-text)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-4 pb-3 text-sm font-medium"
+            >
+              Plans
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="plans">
+            {plans.length > 0 ? (
+              <div className="columns-1 sm:columns-2 lg:columns-3 gap-5">
+                {plans.map((plan) => (
+                  <div key={plan.id} className="break-inside-avoid mb-5">
+                    <PlanCard plan={plan} />
+                  </div>
+                ))}
               </div>
-              
-              {profile.bio && (
-                <p className="max-w-xl text-lg leading-relaxed text-on-surface/80 font-body">
-                  {profile.bio}
-                </p>
-              )}
-              
-              <div className="flex flex-wrap gap-6 items-center pt-2">
-                {profile.linkedin && (
-                  <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-black transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">link</span>
-                    <a href={profile.linkedin.startsWith('http') ? profile.linkedin : `https://${profile.linkedin}`} target="_blank" rel="noopener noreferrer" className="hover:underline">LinkedIn</a>
-                  </div>
-                )}
-                {profile.instagram && (
-                  <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-black transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
-                    <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer" className="hover:underline">@{profile.instagram}</a>
-                  </div>
-                )}
-                {profile.twitter_x && (
-                  <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-black transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">share</span>
-                    <a href={`https://twitter.com/${profile.twitter_x}`} target="_blank" rel="noopener noreferrer" className="hover:underline">@{profile.twitter_x}</a>
-                  </div>
-                )}
+            ) : (
+              <div className="py-16 flex flex-col items-center justify-center text-center border border-dashed border-[var(--plans-divider)] rounded-2xl">
+                <p className="text-sm text-[var(--plans-text-2)]">No plans yet.</p>
               </div>
-
-              {/* Member/Join Button */}
-              {!isChecking && currentUserId && currentUserId !== profile.id && (
-                <div className="pt-6">
-                  {isCollaborator ? (
-                    <div className="inline-flex items-center gap-2 px-6 py-2.5 bg-surface-container-high text-on-surface text-sm font-medium rounded-full shadow-sm">
-                      <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
-                      Shared Plans
-                    </div>
-                  ) : (
-                    <Button onClick={handleJoin} className="rounded-full px-8 py-6 shadow-sm hover:shadow transition-all">
-                      Join Plan
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Plans Section */}
-      <section className="space-y-6">
-        <div className="flex justify-between items-baseline border-b border-outline-variant/30 pb-4">
-          <h2 className="text-2xl md:text-3xl font-headline font-bold tracking-tight">Shared Plans</h2>
-          <span className="text-xs uppercase tracking-[0.2em] font-bold text-neutral-400">{plans.length} Collections</span>
-        </div>
-        
-        {plans.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} />
-            ))}
-          </div>
-        ) : (
-          <div className="py-16 flex flex-col items-center justify-center text-center bg-surface-container-lowest rounded-3xl border border-dashed border-outline-variant">
-            <h3 className="text-xl font-headline font-semibold text-on-surface mb-2">No plans available</h3>
-            <p className="text-sm text-neutral-500 max-w-sm">This user hasn&apos;t created any plans yet.</p>
-          </div>
-        )}
-      </section>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

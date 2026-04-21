@@ -1,45 +1,42 @@
 'use client'
 
 import { useState } from 'react'
-import type { Profile, Plan } from '@/types'
-import { UserAvatar } from '@/components/common/Avatar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PlanCard } from '@/components/plan/PlanCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { AvatarUpload, BannerUpload } from '@/components/profile/PhotoUpload'
-import { Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { PlanCard } from '@/components/plan/PlanCard'
+import type { Profile, Plan } from '@/types'
 
-interface OwnProfileContentProps {
+interface Props {
   profile: Profile
   userId: string
-  plans?: Plan[]
+  plans: Plan[]
+  attendingPlans: Plan[]
 }
 
-function calculateAge(dateOfBirth: string | null): number | null {
-  if (!dateOfBirth) return null
-  const dob = new Date(dateOfBirth)
-  const today = new Date()
-  let age = today.getFullYear() - dob.getFullYear()
-  const monthDiff = today.getMonth() - dob.getMonth()
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-    age--
-  }
-  return age
+const AVATAR_BGS = ['#E5D5C3', '#C4CFEA', '#EEB5B5', '#B8D4C6', '#F5D78A', '#D0C5E5', '#F4B8A3', '#BFD4A3']
+
+function hashName(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = ((h * 31) + s.charCodeAt(i)) >>> 0
+  return h
 }
 
-function formatGender(gender: string | null): string {
-  if (!gender) return ''
-  return gender
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+function getInitials(name: string): string {
+  return name.trim().split(/\s+/).map(n => n[0] ?? '').join('').slice(0, 2).toUpperCase() || '?'
 }
 
-export function OwnProfileContent({ profile, userId, plans = [] }: OwnProfileContentProps) {
-  const [isEditing, setIsEditing] = useState(false)
+export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Props) {
+  const bannerColor = profile.avatar_color || AVATAR_BGS[hashName(profile.name) % AVATAR_BGS.length]
+  const initials = getInitials(profile.name)
+  const hostingCount = plans.length
+  const attendingCount = attendingPlans.length
+
+  // Edit form state
   const [name, setName] = useState(profile.name)
   const [bio, setBio] = useState(profile.bio || '')
   const [instagram, setInstagram] = useState(profile.instagram || '')
@@ -48,11 +45,6 @@ export function OwnProfileContent({ profile, userId, plans = [] }: OwnProfileCon
   const [banner, setBanner] = useState<string | null>(profile.photos?.[0] || null)
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '')
   const [isSaving, setIsSaving] = useState(false)
-
-  const age = calculateAge(profile.date_of_birth)
-  const genderText = formatGender(profile.gender)
-  const ageAndGender = age && genderText ? `${age}, ${genderText}` : age ? `${age}` : genderText
-  const isColorBanner = banner?.startsWith('#')
 
   async function handleSave() {
     setIsSaving(true)
@@ -72,7 +64,6 @@ export function OwnProfileContent({ profile, userId, plans = [] }: OwnProfileCon
         .eq('id', userId)
 
       if (error) throw error
-      setIsEditing(false)
       toast.success('Profile updated')
     } catch (err) {
       console.error('Profile update error:', err)
@@ -90,184 +81,193 @@ export function OwnProfileContent({ profile, userId, plans = [] }: OwnProfileCon
     setTwitterX(profile.twitter_x || '')
     setBanner(profile.photos?.[0] || null)
     setAvatarUrl(profile.avatar_url || '')
-    setIsEditing(false)
   }
 
   return (
-    <div className="w-full max-w-screen-2xl mx-auto space-y-16">
-      {/* Profile Header Section */}
-      <section className="bg-surface rounded-3xl overflow-hidden shadow-sm border border-outline-variant/20">
-        <div className="relative">
-          {/* Banner Area */}
-          <div className="w-full h-48 md:h-64 bg-surface-container-low relative">
-            {isEditing ? (
-              <div className="absolute inset-0 bg-surface/90 flex items-center justify-center p-4 z-10 transition-all">
-                <div className="w-full max-w-xl bg-surface p-6 rounded-xl shadow-lg border border-outline-variant">
-                  <BannerUpload userId={userId} currentUrl={banner} onUpload={setBanner} />
-                </div>
-              </div>
-            ) : banner ? (
-              isColorBanner ? (
-                <div className="w-full h-full" style={{ backgroundColor: banner }} />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={banner} alt={`${name}'s banner`} className="w-full h-full object-cover" />
-              )
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-surface to-surface-container-low" />
-            )}
-            
-            {/* Edit Button Toggle */}
-            {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="absolute top-4 right-4 bg-surface/80 backdrop-blur-sm hover:bg-surface text-on-surface p-2 rounded-full shadow-sm transition-all z-10"
-                aria-label="Edit Profile"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
+    <div className="-mx-6 -mt-8">
+      {/* Banner */}
+      <div className="relative h-[200px]" style={{ background: bannerColor }}>
+        <div className="absolute inset-0 opacity-10">
+          <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" className="w-full h-full">
+            <circle cx="350" cy="60" r="80" fill="currentColor" opacity="0.4"/>
+            <circle cx="80" cy="160" r="60" fill="currentColor" opacity="0.3"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* Avatar — overlaps banner by 56px */}
+      <div className="px-6">
+        <div className="relative -mt-14 mb-4">
+          <div
+            className="h-[120px] w-[120px] rounded-full flex items-center justify-center font-headline italic text-3xl ring-[6px] ring-white shadow-md overflow-hidden"
+            style={{ background: bannerColor, color: '#2E2E2E' }}
+          >
+            {profile.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatar_url} alt={profile.name} className="h-full w-full rounded-full object-cover" />
+            ) : initials}
+          </div>
+        </div>
+
+        {/* Name + bio + actions */}
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h1 className="font-headline text-2xl font-semibold text-[var(--plans-text)]">{profile.name}</h1>
+            {profile.bio && (
+              <p className="text-sm text-[var(--plans-text-2)] mt-1 max-w-md">{profile.bio}</p>
             )}
           </div>
+        </div>
 
-          {/* Avatar Area */}
-          <div className="absolute -bottom-16 left-6 md:left-12">
-            <div className="rounded-full bg-surface p-1 shadow-md">
-              {isEditing ? (
+        {/* Stats strip */}
+        <div className="grid grid-cols-4 border-t border-b border-[var(--plans-divider)] py-4 mb-6">
+          {[
+            { label: 'Hosting', value: hostingCount },
+            { label: 'Attending', value: attendingCount },
+            { label: 'Past plans', value: 0 },
+            { label: 'Friends', value: 0 },
+          ].map(({ label, value }) => (
+            <div key={label} className="text-center">
+              <p className="font-headline text-2xl font-bold text-[var(--plans-text)]">{value}</p>
+              <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mt-0.5">{label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="plans">
+          <TabsList className="w-full justify-start rounded-none h-auto bg-transparent pb-0 mb-6 gap-0 border-b border-[var(--plans-divider)]">
+            {(['plans', 'settings'] as const).map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="capitalize rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--plans-text)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-4 pb-3 text-sm font-medium"
+              >
+                {tab}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="plans">
+            {/* Hosting */}
+            {plans.length > 0 && (
+              <div className="mb-8">
+                <p className="text-[11px] font-semibold uppercase tracking-[1.4px] text-[var(--plans-text-2)] mb-4">Hosting</p>
+                <div className="columns-1 sm:columns-2 lg:columns-3 gap-5">
+                  {plans.map((plan) => (
+                    <div key={plan.id} className="break-inside-avoid mb-5">
+                      <PlanCard plan={plan as Plan} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Attending */}
+            {attendingPlans.length > 0 && (
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[1.4px] text-[var(--plans-text-2)] mb-4">Attending</p>
+                <div className="columns-1 sm:columns-2 lg:columns-3 gap-5">
+                  {(attendingPlans as Plan[]).map((plan) => (
+                    <div key={plan.id} className="break-inside-avoid mb-5">
+                      <PlanCard plan={plan} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {plans.length === 0 && attendingPlans.length === 0 && (
+              <div className="py-16 flex flex-col items-center justify-center text-center border border-dashed border-[var(--plans-divider)] rounded-2xl">
+                <p className="text-sm text-[var(--plans-text-2)] mb-4">No plans yet.</p>
+                <Button asChild>
+                  <a href="/plans/new">Create a plan</a>
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="max-w-md space-y-6">
+              {/* Avatar upload */}
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-2">Avatar</p>
                 <AvatarUpload
                   userId={userId}
                   currentUrl={avatarUrl}
                   name={name}
                   onUpload={setAvatarUrl}
                 />
-              ) : (
-                <UserAvatar url={avatarUrl} name={name} size="xl" className="h-32 w-32 md:h-40 md:w-40 border-4 border-surface" />
-              )}
-            </div>
-          </div>
-        </div>
+              </div>
 
-        {/* Content Area */}
-        <div className="pt-24 px-6 md:px-12 pb-8">
-          <div className="flex flex-col md:flex-row gap-8 justify-between items-start">
-            <div className="flex-1 space-y-4 max-w-2xl">
-              {isEditing ? (
-                <div className="space-y-4">
+              {/* Banner upload */}
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-2">Banner</p>
+                <BannerUpload userId={userId} currentUrl={banner} onUpload={setBanner} />
+              </div>
+
+              {/* Display name */}
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-1">Display name</p>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="border-0 border-b border-[var(--plans-divider)] rounded-none bg-transparent px-0 focus-visible:ring-0 focus-visible:border-[var(--plans-text)]"
+                  placeholder="Your name"
+                />
+              </div>
+
+              {/* Bio */}
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-1">Bio</p>
+                <Textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="border border-[var(--plans-divider)] bg-transparent resize-none min-h-[80px] text-sm"
+                  placeholder="Tell people about yourself…"
+                />
+              </div>
+
+              {/* Social links */}
+              <div className="space-y-3">
+                <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)]">Social links</p>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[var(--plans-text-2)]">@</span>
                   <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="border-b bg-transparent font-headline text-3xl md:text-5xl font-bold text-on-surface px-0 py-6 h-auto"
-                    placeholder="Your name"
+                    value={instagram}
+                    onChange={(e) => setInstagram(e.target.value)}
+                    placeholder="Instagram"
+                    className="pl-7 border-0 border-b border-[var(--plans-divider)] rounded-none bg-transparent px-0 pl-6 focus-visible:ring-0"
                   />
-                  <p className="text-sm text-neutral-500 font-medium tracking-tight">
-                    {ageAndGender || 'Age & Gender not set'}
-                  </p>
-                  <Textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="border bg-surface text-lg leading-relaxed text-on-surface/80 font-body px-4 py-3 rounded-lg resize-none min-h-[120px]"
-                    placeholder="Designing memories through curated itineraries..."
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">@</span>
-                      <Input
-                        value={instagram}
-                        onChange={(e) => setInstagram(e.target.value)}
-                        placeholder="Instagram"
-                        className="pl-8"
-                      />
-                    </div>
-                    <Input
-                      value={linkedin}
-                      onChange={(e) => setLinkedin(e.target.value)}
-                      placeholder="LinkedIn URL"
-                      type="url"
-                    />
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">@</span>
-                      <Input
-                        value={twitterX}
-                        onChange={(e) => setTwitterX(e.target.value)}
-                        placeholder="X / Twitter"
-                        className="pl-8"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3 justify-end pt-4">
-                    <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={isSaving}>
-                      {isSaving ? 'Saving...' : 'Save Changes'}
-                    </Button>
-                  </div>
                 </div>
-              ) : (
-                <>
-                  <div>
-                    <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter mb-2">{name}</h1>
-                    {ageAndGender && (
-                      <p className="text-neutral-500 font-medium tracking-tight">{ageAndGender}</p>
-                    )}
-                  </div>
-                  
-                  {bio && (
-                    <p className="max-w-xl text-lg leading-relaxed text-on-surface/80 font-body">
-                      {bio}
-                    </p>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-6 items-center pt-2">
-                    {linkedin && (
-                      <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-black transition-colors">
-                        <span className="material-symbols-outlined text-[18px]">link</span>
-                        <a href={linkedin.startsWith('http') ? linkedin : `https://${linkedin}`} target="_blank" rel="noopener noreferrer" className="hover:underline">LinkedIn</a>
-                      </div>
-                    )}
-                    {instagram && (
-                      <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-black transition-colors">
-                        <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
-                        <a href={`https://instagram.com/${instagram}`} target="_blank" rel="noopener noreferrer" className="hover:underline">@{instagram}</a>
-                      </div>
-                    )}
-                    {twitterX && (
-                      <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-black transition-colors">
-                        <span className="material-symbols-outlined text-[18px]">share</span>
-                        <a href={`https://twitter.com/${twitterX}`} target="_blank" rel="noopener noreferrer" className="hover:underline">@{twitterX}</a>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+                <Input
+                  value={linkedin}
+                  onChange={(e) => setLinkedin(e.target.value)}
+                  placeholder="LinkedIn URL"
+                  type="url"
+                  className="border-0 border-b border-[var(--plans-divider)] rounded-none bg-transparent px-0 focus-visible:ring-0"
+                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[var(--plans-text-2)]">@</span>
+                  <Input
+                    value={twitterX}
+                    onChange={(e) => setTwitterX(e.target.value)}
+                    placeholder="X / Twitter"
+                    className="pl-7 border-0 border-b border-[var(--plans-divider)] rounded-none bg-transparent px-0 pl-6 focus-visible:ring-0"
+                  />
+                </div>
+              </div>
 
-      {/* Plans Section */}
-      <section className="space-y-6">
-        <div className="flex justify-between items-baseline border-b border-outline-variant/30 pb-4">
-          <h2 className="text-2xl md:text-3xl font-headline font-bold tracking-tight">My Plans</h2>
-          <span className="text-xs uppercase tracking-[0.2em] font-bold text-neutral-400">{plans.length} Collections</span>
-        </div>
-        
-        {plans.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} />
-            ))}
-          </div>
-        ) : (
-          <div className="py-16 flex flex-col items-center justify-center text-center bg-surface-container-lowest rounded-3xl border border-dashed border-outline-variant">
-            <h3 className="text-xl font-headline font-semibold text-on-surface mb-2">No plans created yet</h3>
-            <p className="text-sm text-neutral-500 max-w-sm">Create your first itinerary and start organizing your trips.</p>
-            <Button className="mt-8" asChild>
-              <a href="/plans/new">Create Plan</a>
-            </Button>
-          </div>
-        )}
-      </section>
+              <div className="flex gap-3 pt-2">
+                <Button variant="outline" onClick={handleCancel} disabled={isSaving} className="rounded-full">
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={isSaving} className="rounded-full">
+                  {isSaving ? 'Saving…' : 'Save changes'}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

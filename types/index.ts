@@ -12,6 +12,7 @@ export type Profile = {
   linkedin: string | null
   twitter_x: string | null
   avatar_url: string | null
+  avatar_color: string | null
   photos: string[]
   created_at: string
 }
