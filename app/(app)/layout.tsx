@@ -16,7 +16,6 @@ import type { Profile } from '@/types'
 
 async function NavBar({ profile }: { profile: Profile }) {
   const supabase = await createClient()
-
   const { count } = await supabase
     .from('plan_attendees')
     .select('id', { count: 'exact', head: true })
@@ -26,19 +25,25 @@ async function NavBar({ profile }: { profile: Profile }) {
   const inviteCount = count ?? 0
 
   return (
-    <header className="border-b bg-background sticky top-0 z-50">
-      <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/home" className="font-semibold text-lg">
+    <header
+      className="sticky top-0 z-50 border-b border-[var(--plans-divider)]"
+      style={{ background: 'rgba(252,249,248,0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+    >
+      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <Link href="/home" className="font-headline font-semibold text-lg tracking-tight text-[var(--plans-text)]">
           Plans
         </Link>
 
         <div className="flex items-center gap-3">
-          <Link href="/plans/new" className={cn(buttonVariants({ size: 'sm' }))}>
-            Create plan
+          <Link
+            href="/plans/new"
+            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-[var(--plans-text)] border border-[var(--plans-divider)] rounded-full')}
+          >
+            New plan
           </Link>
 
-          <Link href="/home#invites" className="relative p-1.5 rounded-full hover:bg-muted transition-colors">
-            <Bell className="w-5 h-5 text-muted-foreground" />
+          <Link href="/home#invites" className="relative p-1.5 rounded-full hover:bg-[var(--plans-surface)] transition-colors">
+            <Bell className="w-5 h-5 text-[var(--plans-text-2)]" />
             {inviteCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                 {inviteCount > 9 ? '9+' : inviteCount}
@@ -50,7 +55,7 @@ async function NavBar({ profile }: { profile: Profile }) {
             <DropdownMenuTrigger className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={profile.avatar_url ?? undefined} />
-                <AvatarFallback className="text-xs">
+                <AvatarFallback className="text-xs bg-[var(--plans-surface)] font-headline">
                   {profile.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -70,13 +75,8 @@ async function NavBar({ profile }: { profile: Profile }) {
   )
 }
 
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getAuthenticatedUser()
-
   if (!user) redirect('/login')
 
   const supabase = await createClient()
@@ -89,9 +89,9 @@ export default async function AppLayout({
   if (!profile) redirect('/onboarding')
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[var(--bg)]">
       <NavBar profile={profile} />
-      <main className="max-w-3xl mx-auto px-4 py-6">{children}</main>
+      <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
     </div>
   )
 }
