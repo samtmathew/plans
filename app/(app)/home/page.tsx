@@ -76,9 +76,7 @@ export default async function HomePage() {
 
       {/* Invite strip */}
       {invites.length > 0 && (
-        <div className="mb-8">
-          <InvitesSection initialInvites={invites} />
-        </div>
+        <InvitesSection initialInvites={invites} />
       )}
 
       {pendingLinkPlans.length > 0 && (
