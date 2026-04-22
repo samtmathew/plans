@@ -1,25 +1,13 @@
 import { ImageResponse } from 'next/og'
 import { createClient } from '@supabase/supabase-js'
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
 import { calcEstimatedPerPerson } from '@/lib/utils/cost'
 import type { PlanAttendee, PlanItem } from '@/types'
 
-export const runtime = 'nodejs'
+export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 export const alt = 'Plan Preview'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
-
-async function loadFont(weight: 400 | 700): Promise<ArrayBuffer | null> {
-  try {
-    const filename = weight === 700 ? 'SpaceGrotesk-Bold.woff' : 'SpaceGrotesk-Regular.woff'
-    const fontPath = path.join(process.cwd(), 'public', 'fonts', filename)
-    const buffer = await readFile(fontPath)
-    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
-  } catch {
-    return null
-  }
-}
 
 function formatCurrency(amount: number): string {
   if (amount >= 1000) {
@@ -33,29 +21,52 @@ export default async function OGImage({
 }: {
   params: { join_token: string }
 }) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const [instrumentItalic, dmSans] = await Promise.all([
+    fetch(new URL('../../fonts/InstrumentSerif-Italic.woff', import.meta.url)).then(
+      (r) => r.arrayBuffer()
+    ),
+    fetch(new URL('../../fonts/DMSans-Regular.woff', import.meta.url)).then((r) =>
+      r.arrayBuffer()
+    ),
+  ])
 
-  const { data: plan } = await supabase
-    .from('plans')
-    .select(
-      '*, organiser:profiles!organiser_id(*), attendees:plan_attendees(*), items:plan_items(*)'
+  const BG = '#FCF9F8'
+  const INK = '#1C1B1B'
+  const MUTE = '#5E5E5E'
+  const ACCENT = '#3D3D8F'
+  const DIVIDER = '#C7C5D3'
+
+  const baseFonts = [
+    { name: 'Instrument Serif', data: instrumentItalic, style: 'italic' as const, weight: 400 as const },
+    { name: 'DM Sans', data: dmSans, style: 'normal' as const, weight: 400 as const },
+  ]
+
+  let plan: {
+    title: string
+    description: string | null
+    deleted_at: string | null
+    organiser: { name?: string; avatar_url?: string } | null
+    attendees: PlanAttendee[] | null
+    items: PlanItem[] | null
+  } | null = null
+
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
-    .eq('join_token', params.join_token)
-    .single()
+    const { data } = await supabase
+      .from('plans')
+      .select(
+        '*, organiser:profiles!organiser_id(*), attendees:plan_attendees(*), items:plan_items(*)'
+      )
+      .eq('join_token', params.join_token)
+      .single()
+    plan = data
+  } catch {
+    plan = null
+  }
 
-  const [fontRegular, fontBold] = await Promise.all([loadFont(400), loadFont(700)])
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fonts: any[] = []
-  if (fontRegular) fonts.push({ name: 'Space Grotesk', data: fontRegular, weight: 400 })
-  if (fontBold) fonts.push({ name: 'Space Grotesk', data: fontBold, weight: 700 })
-
-  const fontFamily = fonts.length > 0 ? 'Space Grotesk' : 'system-ui'
-
-  // Fallback card when plan not found
   if (!plan || plan.deleted_at) {
     return new ImageResponse(
       (
@@ -63,38 +74,31 @@ export default async function OGImage({
           style={{
             width: '100%',
             height: '100%',
+            background: BG,
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: 'white',
-            fontFamily,
+            justifyContent: 'center',
+            fontFamily: 'Instrument Serif',
+            fontStyle: 'italic',
+            fontSize: 220,
+            color: INK,
           }}
         >
-          <div
-            style={{
-              fontSize: 96,
-              fontWeight: 700,
-              color: 'rgba(18,18,18,0.5)',
-              letterSpacing: '-0.04em',
-            }}
-          >
-            Plans
-          </div>
+          Plans
         </div>
       ),
-      { ...size, fonts }
+      { ...size, fonts: baseFonts }
     )
   }
 
-  const approvedAttendees = ((plan.attendees as PlanAttendee[]) ?? []).filter(
-    (a) => a.status === 'approved'
-  )
-  const planItems = (plan.items as PlanItem[]) ?? []
+  const approvedAttendees = (plan.attendees ?? []).filter((a) => a.status === 'approved')
+  const planItems = plan.items ?? []
   const costPerPerson = calcEstimatedPerPerson(planItems, approvedAttendees.length)
   const attendeeCount = approvedAttendees.length
-  const organiserName = (plan.organiser as { name?: string })?.name ?? ''
-  const organiserAvatar = (plan.organiser as { avatar_url?: string })?.avatar_url ?? null
+  const organiserName = plan.organiser?.name ?? ''
+
+  const title = plan.title
+  const titleSize = title.length > 40 ? 92 : title.length > 24 ? 120 : 148
 
   return new ImageResponse(
     (
@@ -102,16 +106,16 @@ export default async function OGImage({
         style={{
           width: '100%',
           height: '100%',
+          background: BG,
+          padding: 72,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          backgroundColor: 'white',
-          padding: '96px',
           position: 'relative',
-          fontFamily,
+          fontFamily: 'DM Sans',
+          color: INK,
         }}
       >
-        {/* Background watermark */}
         <div
           style={{
             position: 'absolute',
@@ -119,159 +123,154 @@ export default async function OGImage({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            overflow: 'hidden',
+            opacity: 0.05,
             pointerEvents: 'none',
           }}
         >
           <span
             style={{
-              fontSize: 384,
-              fontWeight: 700,
-              color: 'rgba(18,18,18,0.03)',
-              letterSpacing: '-0.04em',
+              fontFamily: 'Instrument Serif',
+              fontStyle: 'italic',
+              fontSize: 380,
               lineHeight: 1,
-              userSelect: 'none',
+              color: INK,
             }}
           >
             Plans
           </span>
         </div>
 
-        {/* Top label */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             position: 'relative',
+            zIndex: 10,
           }}
         >
           <span
             style={{
-              fontSize: 12,
-              fontWeight: 500,
-              letterSpacing: '0.2em',
-              color: 'rgba(18,18,18,0.4)',
+              fontSize: 18,
+              letterSpacing: 6,
               textTransform: 'uppercase',
+              color: ACCENT,
             }}
           >
             Itinerary
           </span>
+          <span
+            style={{
+              fontSize: 14,
+              letterSpacing: 4,
+              textTransform: 'uppercase',
+              color: MUTE,
+            }}
+          >
+            plans.app
+          </span>
         </div>
 
-        {/* Main content */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            maxWidth: '800px',
             position: 'relative',
+            zIndex: 10,
+            maxWidth: 1000,
           }}
         >
-          <h1
+          <div
             style={{
-              fontSize: plan.title.length > 30 ? 72 : 96,
-              fontWeight: 700,
-              color: '#121212',
-              lineHeight: 1.1,
-              letterSpacing: '-0.02em',
-              margin: 0,
-              marginBottom: plan.description ? 32 : 0,
+              fontFamily: 'Instrument Serif',
+              fontStyle: 'italic',
+              fontSize: titleSize,
+              lineHeight: 1.04,
+              letterSpacing: -2,
+              color: INK,
             }}
           >
-            {plan.title}
-          </h1>
+            {title}
+          </div>
           {plan.description && (
-            <p
+            <div
               style={{
-                fontSize: 24,
-                fontWeight: 400,
-                color: 'rgba(18,18,18,0.5)',
-                lineHeight: 1.5,
-                margin: 0,
-                maxWidth: '700px',
-                // clamp to 2 lines roughly
-                display: '-webkit-box',
-                overflow: 'hidden',
+                fontSize: 26,
+                lineHeight: 1.3,
+                color: MUTE,
+                marginTop: 20,
+                maxWidth: 900,
+                display: 'flex',
               }}
             >
-              {plan.description.length > 120
-                ? plan.description.slice(0, 120) + '…'
+              {plan.description.length > 110
+                ? plan.description.slice(0, 110) + '…'
                 : plan.description}
-            </p>
+            </div>
           )}
         </div>
 
-        {/* Bottom strip */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderTop: '1px solid rgba(229,231,235,0.3)',
-            paddingTop: 48,
+            borderTop: `1px solid ${DIVIDER}`,
+            paddingTop: 28,
             position: 'relative',
+            zIndex: 10,
           }}
         >
-          {/* Metadata pills */}
-          <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
             {attendeeCount > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 18, color: 'rgba(18,18,18,0.4)' }}>●</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span
-                  style={{ fontSize: 18, fontWeight: 500, color: '#121212' }}
-                >
+                  style={{
+                    width: 8,
+                    height: 8,
+                    background: ACCENT,
+                    borderRadius: 999,
+                    display: 'flex',
+                  }}
+                />
+                <span style={{ fontSize: 20, color: INK }}>
                   {attendeeCount} going
                 </span>
               </div>
             )}
             {costPerPerson > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 18, color: 'rgba(18,18,18,0.4)' }}>●</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span
-                  style={{ fontSize: 18, fontWeight: 500, color: '#121212' }}
-                >
+                  style={{
+                    width: 8,
+                    height: 8,
+                    background: ACCENT,
+                    borderRadius: 999,
+                    display: 'flex',
+                  }}
+                />
+                <span style={{ fontSize: 20, color: INK }}>
                   {formatCurrency(costPerPerson)} pp
                 </span>
               </div>
             )}
           </div>
 
-          {/* Organiser */}
           {organiserName && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {organiserAvatar && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={organiserAvatar}
-                  width={32}
-                  height={32}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    filter: 'grayscale(100%)',
-                  }}
-                  alt=""
-                />
-              )}
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: 'rgba(18,18,18,0.6)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.15em',
-                }}
-              >
-                {organiserName}
-              </span>
-            </div>
+            <span
+              style={{
+                fontSize: 14,
+                letterSpacing: 3,
+                textTransform: 'uppercase',
+                color: MUTE,
+              }}
+            >
+              by {organiserName}
+            </span>
           )}
         </div>
       </div>
     ),
-    { ...size, fonts }
+    { ...size, fonts: baseFonts }
   )
 }
