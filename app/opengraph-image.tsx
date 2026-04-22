@@ -1,17 +1,20 @@
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
 import { ImageResponse } from 'next/og'
 
+export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 export const alt = 'Plans — organise group trips & outings'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
-const instrumentItalic = readFileSync(
-  path.join(process.cwd(), 'app/fonts/InstrumentSerif-Italic.woff')
-)
-const dmSans = readFileSync(path.join(process.cwd(), 'app/fonts/DMSans-Regular.woff'))
-
 export default async function Image() {
+  const [instrumentItalic, dmSans] = await Promise.all([
+    fetch(new URL('./fonts/InstrumentSerif-Italic.woff', import.meta.url)).then((r) =>
+      r.arrayBuffer()
+    ),
+    fetch(new URL('./fonts/DMSans-Regular.woff', import.meta.url)).then((r) =>
+      r.arrayBuffer()
+    ),
+  ])
 
   const BG = '#FCF9F8'
   const INK = '#1C1B1B'
