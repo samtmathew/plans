@@ -37,8 +37,12 @@ export async function middleware(request: NextRequest) {
   const isJoinRoute = pathname.startsWith('/join/')
   const isApiRoute = pathname.startsWith('/api/')
   const isAuthRoute = pathname.startsWith('/auth/')
+  const isMetadataRoute =
+    /\/(opengraph-image|twitter-image|icon|apple-icon|sitemap\.xml|robots\.txt|manifest\.webmanifest)(\?.*)?$/.test(
+      pathname
+    )
 
-  if (isPublicRoute || isJoinRoute || isApiRoute || isAuthRoute) {
+  if (isPublicRoute || isJoinRoute || isApiRoute || isAuthRoute || isMetadataRoute) {
     // Skip landing page for already-authenticated users
     if (pathname === '/' && user) {
       const homeUrl = request.nextUrl.clone()

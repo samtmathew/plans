@@ -30,6 +30,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://plans-kappa-mocha.vercel.app'),
   title: 'Plans',
   description: 'Organise group trips and outings — itineraries, costs, and attendees in one place.',
+  openGraph: {
+    type: 'website',
+    siteName: 'Plans',
+    title: 'Plans — Organise group trips & outings',
+    description: 'Itineraries, costs, and attendees in one place.',
+    url: '/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Plans — Organise group trips & outings',
+    description: 'Itineraries, costs, and attendees in one place.',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
