@@ -1,7 +1,6 @@
 'use client'
 
 import { UserAvatar } from '@/components/common/Avatar'
-import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import Link from 'next/link'
@@ -26,40 +25,52 @@ export function AttendeeList({
   const rest = attendees.filter((a) => a.status !== 'pending')
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-6">
       {isOrganiser && pending.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant">
-            Pending requests ({pending.length})
+        <div>
+          <h4
+            className="text-[10px] font-semibold uppercase text-[var(--plans-text-2)] mb-2"
+            style={{ letterSpacing: '0.18em' }}
+          >
+            Pending requests · {pending.length}
           </h4>
-          {pending.map((attendee) => (
-            <AttendeeRow
-              key={attendee.id}
-              attendee={attendee}
-              isOrganiser={isOrganiser}
-              onApprove={onApprove}
-              onReject={onReject}
-              onRemove={onRemove}
-            />
-          ))}
+          <div className="flex flex-col">
+            {pending.map((a) => (
+              <AttendeeRow
+                key={a.id}
+                attendee={a}
+                isOrganiser={isOrganiser}
+                onApprove={onApprove}
+                onReject={onReject}
+                onRemove={onRemove}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       {rest.length > 0 && (
-        <div className="space-y-2">
+        <div>
           {isOrganiser && pending.length > 0 && (
-            <h4 className="text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant">Members</h4>
+            <h4
+              className="text-[10px] font-semibold uppercase text-[var(--plans-text-2)] mb-2"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              Members
+            </h4>
           )}
-          {rest.map((attendee) => (
-            <AttendeeRow
-              key={attendee.id}
-              attendee={attendee}
-              isOrganiser={isOrganiser}
-              onApprove={onApprove}
-              onReject={onReject}
-              onRemove={onRemove}
-            />
-          ))}
+          <div className="flex flex-col">
+            {rest.map((a) => (
+              <AttendeeRow
+                key={a.id}
+                attendee={a}
+                isOrganiser={isOrganiser}
+                onApprove={onApprove}
+                onReject={onReject}
+                onRemove={onRemove}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -82,28 +93,57 @@ function AttendeeRow({
   const profile = attendee.profile
   if (!profile) return null
 
+  const isOrganiserRow = attendee.role === 'organiser'
+  const badgeLabel =
+    attendee.status === 'pending'
+      ? 'Pending'
+      : attendee.status === 'rejected'
+        ? 'Rejected'
+        : isOrganiserRow
+          ? 'Organiser'
+          : 'Confirmed'
+  const badgeClass =
+    attendee.status === 'pending'
+      ? 'bg-[var(--yellow-soft)] text-[#8a6b14]'
+      : attendee.status === 'rejected'
+        ? 'bg-[var(--red-soft)] text-[#8a1f1f]'
+        : isOrganiserRow
+          ? 'bg-[var(--plans-surface)] text-[var(--plans-text-2)]'
+          : 'bg-[var(--green-soft)] text-[#1f5a3a]'
+
   return (
-    <div className="flex items-center gap-3 py-2 px-2 rounded hover:bg-surface-container-low transition-colors">
+    <div
+      className="flex items-center gap-3.5 py-3.5"
+      style={{ borderBottom: '1px solid var(--plans-divider)' }}
+    >
       <Link href={`/profile/${profile.id}`} className="shrink-0">
-        <UserAvatar url={profile.avatar_url} name={profile.name} size="sm" />
+        <UserAvatar url={profile.avatar_url} name={profile.name} size="md" />
       </Link>
       <div className="flex-1 min-w-0">
-        <Link
-          href={`/profile/${profile.id}`}
-          className="text-sm font-medium text-on-surface hover:underline truncate block"
-        >
-          {profile.name}
-        </Link>
+        <div className="flex items-baseline gap-2">
+          <Link
+            href={`/profile/${profile.id}`}
+            className="text-[14px] font-semibold text-[var(--plans-text)] truncate hover:underline"
+          >
+            {profile.name}
+          </Link>
+          {isOrganiserRow && (
+            <span className="text-[11px] text-[var(--plans-text-2)] font-normal">organiser</span>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <StatusBadge status={attendee.role} />
-        <StatusBadge status={attendee.status} />
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-medium ${badgeClass}`}
+        >
+          {badgeLabel}
+        </span>
         {isOrganiser && attendee.status === 'pending' && (
           <>
             <Button
               size="sm"
               variant="outline"
-              className="h-7 text-xs"
+              className="h-7 rounded-full text-xs"
               onClick={() => onApprove?.(attendee.id)}
             >
               Approve
@@ -111,7 +151,7 @@ function AttendeeRow({
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 text-xs text-destructive"
+              className="h-7 rounded-full text-xs text-[var(--plans-text-2)]"
               onClick={() => onReject?.(attendee.id)}
             >
               Reject
@@ -122,17 +162,17 @@ function AttendeeRow({
           <Button
             size="sm"
             variant="outline"
-            className="h-7 text-xs"
+            className="h-7 rounded-full text-xs"
             onClick={() => onApprove?.(attendee.id)}
           >
             Re-approve
           </Button>
         )}
-        {isOrganiser && attendee.role === 'attendee' && (
+        {isOrganiser && !isOrganiserRow && attendee.status === 'approved' && (
           <Button
             size="icon"
             variant="ghost"
-            className="h-7 w-7"
+            className="h-7 w-7 rounded-full text-[var(--plans-text-2)] hover:text-[var(--plans-text)]"
             onClick={() => onRemove?.(attendee.id)}
             aria-label="Remove attendee"
           >

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { Trash2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ManagePending } from './ManagePending'
 import { PlanEditForm } from '../edit/PlanEditForm'
@@ -59,93 +60,99 @@ export function ManageTabs({
   }
 
   return (
-    <Tabs defaultValue="requests" className="w-full">
-      <TabsList className="w-full justify-start rounded-none h-auto bg-transparent pb-0 mb-6 gap-0 border-b border-[var(--plans-divider)]">
-        {(['requests', 'edit', 'danger'] as const).map((tab) => (
-          <TabsTrigger
-            key={tab}
-            value={tab}
-            className="capitalize rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--plans-text)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-4 pb-3 text-sm font-medium"
-          >
-            {tab === 'requests' ? (
-              <>
-                Requests{' '}
-                {pendingCount > 0 && (
-                  <span className="ml-1 bg-[var(--plans-text)] text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
-                    {pendingCount}
-                  </span>
-                )}
-              </>
-            ) : tab === 'edit' ? (
-              'Edit details'
-            ) : (
-              'Danger zone'
-            )}
-          </TabsTrigger>
-        ))}
+    <Tabs defaultValue="requests" className="w-full flex flex-col gap-0">
+      <TabsList variant="line" className="flex w-full justify-start rounded-none h-auto bg-transparent p-0 gap-6 border-b border-[var(--plans-divider)]">
+        <TabsTrigger
+          value="requests"
+          className="flex-none rounded-none border-b-2 border-transparent data-[active]:border-[var(--plans-text)] data-[active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-0 pb-2.5 pt-2.5 text-[14px] font-medium"
+        >
+          Requests{pendingCount > 0 && ` · ${pendingCount}`}
+        </TabsTrigger>
+        <TabsTrigger
+          value="edit"
+          className="flex-none rounded-none border-b-2 border-transparent data-[active]:border-[var(--plans-text)] data-[active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-0 pb-2.5 pt-2.5 text-[14px] font-medium"
+        >
+          Edit details
+        </TabsTrigger>
+        <TabsTrigger
+          value="danger"
+          className="flex-none rounded-none border-b-2 border-transparent data-[active]:border-[var(--plans-text)] data-[active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-0 pb-2.5 pt-2.5 text-[14px] font-medium"
+        >
+          Danger zone
+        </TabsTrigger>
       </TabsList>
 
-      {/* Requests tab */}
-      <TabsContent value="requests">
-        {pendingCount === 0 ? (
-          <div className="py-12">
-            <p className="font-headline italic text-[var(--plans-text-2)]">
-              No pending requests.
-            </p>
-          </div>
-        ) : (
-          <ManagePending
-            planId={planId}
-            attendees={pendingAttendees}
-            guestAttendees={guestAttendees}
-          />
-        )}
-      </TabsContent>
+      <TabsContent value="requests" className="mt-8">
+          {pendingCount === 0 ? (
+            <div className="py-14">
+              <p className="font-headline italic text-[24px] text-[var(--plans-text)] mb-1.5">
+                No pending requests.
+              </p>
+              <p className="text-[13px] text-[var(--plans-text-2)]">
+                You&apos;ll see them here when people request to join.
+              </p>
+            </div>
+          ) : (
+            <ManagePending
+              planId={planId}
+              attendees={pendingAttendees}
+              guestAttendees={guestAttendees}
+            />
+          )}
+        </TabsContent>
 
-      {/* Edit details tab */}
-      <TabsContent value="edit">
-        <PlanEditForm plan={plan} />
-      </TabsContent>
+        {/* Edit */}
+        <TabsContent value="edit" className="mt-8">
+          <PlanEditForm plan={plan} />
+        </TabsContent>
 
-      {/* Danger zone tab */}
-      <TabsContent value="danger">
-        <div className="max-w-sm">
-          <div className="border border-red-200 rounded-xl p-6 space-y-3 bg-red-50/50">
-            <h3 className="font-semibold text-red-800 text-sm">Cancel this plan</h3>
-            <p className="text-sm text-red-700/70">
-              This will close the plan and remove it from all attendees&apos; dashboards.
-            </p>
-
-            {deleteConfirm && (
-              <div className="p-3 bg-red-100 border border-red-300 rounded-lg">
-                <p className="text-sm text-red-900">
-                  Are you sure? This cannot be undone.
-                </p>
+        {/* Danger zone */}
+        <TabsContent value="danger" className="mt-8">
+          <div className="max-w-[640px]">
+            <div
+              className="rounded-xl p-5"
+              style={{ border: '1px solid #F2D3D3', background: 'var(--red-soft)' }}
+            >
+              <div className="text-[15px] font-semibold mb-1.5" style={{ color: '#8a1f1f' }}>
+                Cancel plan
               </div>
-            )}
-
-            <div className="flex gap-2 pt-1">
-              <button
-                onClick={handleDelete}
-                disabled={loading}
-                className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                {loading ? 'Cancelling…' : deleteConfirm ? 'Confirm cancel' : 'Cancel plan'}
-              </button>
+              <p className="text-[13px] mb-4" style={{ color: '#8a1f1f', opacity: 0.85 }}>
+                Everyone will be notified. This can&apos;t be undone.
+              </p>
 
               {deleteConfirm && (
-                <button
-                  onClick={() => setDeleteConfirm(false)}
-                  disabled={loading}
-                  className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50 transition-colors"
-                >
-                  Keep plan
-                </button>
+                <div className="p-3 mb-4 rounded-lg" style={{ background: '#F8DADA', border: '1px solid #F2C3C3' }}>
+                  <p className="text-[13px]" style={{ color: '#7a1818' }}>
+                    Are you sure? This cannot be undone.
+                  </p>
+                </div>
               )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDelete}
+                  disabled={loading}
+                  className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13px] font-medium transition-colors disabled:opacity-50"
+                  style={{ border: '1px solid #e0a0a0', color: '#8a1f1f', background: 'transparent' }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {loading ? 'Cancelling…' : deleteConfirm ? 'Confirm cancel' : 'Cancel this plan'}
+                </button>
+
+                {deleteConfirm && (
+                  <button
+                    onClick={() => setDeleteConfirm(false)}
+                    disabled={loading}
+                    className="inline-flex items-center rounded-full px-4 py-2 text-[13px] font-medium transition-colors disabled:opacity-50"
+                    style={{ color: '#8a1f1f' }}
+                  >
+                    Keep plan
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </TabsContent>
+        </TabsContent>
     </Tabs>
   )
 }

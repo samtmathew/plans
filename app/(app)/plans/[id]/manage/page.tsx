@@ -3,8 +3,7 @@ import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ManageTabs } from './ManageTabs'
-import { ArrowLeft, Settings2 } from 'lucide-react'
-import { StatusBadge } from '@/components/common/StatusBadge'
+import { ArrowLeft } from 'lucide-react'
 import type { Plan, PlanAttendee, GuestAttendee } from '@/types'
 
 interface Props {
@@ -30,7 +29,6 @@ export default async function ManagePlanPage({ params }: Props) {
   if (planError) throw new Error(planError.message)
   if (!plan || plan.deleted_at) notFound()
 
-  // Check if current user is organiser
   if (plan.organiser_id !== user!.id) {
     redirect(`/plans/${id}`)
   }
@@ -40,7 +38,6 @@ export default async function ManagePlanPage({ params }: Props) {
   ) || []
   const approvedAttendees = (plan.attendees as PlanAttendee[]).filter((a) => a.status === 'approved') || []
 
-  // Fetch guest attendees for this plan
   const { data: guestAttendees } = await supabase
     .from('guest_attendees')
     .select('*')
@@ -54,28 +51,36 @@ export default async function ManagePlanPage({ params }: Props) {
   const joinUrl = `${origin}/join/${plan.join_token}`
 
   return (
-    <div className="pb-16 space-y-6">
-      {/* Back link + header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
+    <div className="max-w-[1100px] mx-auto px-6 pb-32 pt-6">
+      <div className="mb-3">
+        <Link
+          href={`/plans/${id}`}
+          className="inline-flex items-center gap-1.5 text-[13px] text-[var(--plans-text-2)] hover:text-[var(--plans-text)] transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
+          Back to plan
+        </Link>
+      </div>
+
+      <div className="mb-8 flex items-end justify-between gap-6 flex-wrap">
+        <div>
+          <div className="text-[10px] font-semibold uppercase text-[var(--plans-text-2)] mb-2" style={{ letterSpacing: '0.18em' }}>
+            Managing
+          </div>
+          <h1 className="font-headline italic font-normal text-[var(--plans-text)] leading-[1.05]" style={{ fontSize: 'clamp(32px, 4.5vw, 44px)', letterSpacing: '-0.01em' }}>
+            {plan.title}
+          </h1>
+        </div>
+        <div className="flex gap-2">
           <Link
             href={`/plans/${id}`}
-            className="inline-flex items-center gap-1.5 text-sm text-[var(--plans-text-2)] hover:text-[var(--plans-text)] transition-colors"
+            className="inline-flex items-center rounded-full border border-[var(--plans-divider)] px-3.5 py-1.5 text-[13px] font-medium text-[var(--plans-text)] hover:border-[var(--plans-text)] transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to plan
+            Preview as guest
           </Link>
-          <div className="flex items-center gap-3">
-            <Settings2 className="h-5 w-5 text-[var(--plans-text-2)]" />
-            <h1 className="font-headline italic text-2xl text-[var(--plans-text)] leading-tight">
-              {plan.title}
-            </h1>
-            <StatusBadge status={plan.status} />
-          </div>
         </div>
       </div>
 
-      {/* Tabs */}
       <ManageTabs
         plan={plan as Plan}
         planId={id}
