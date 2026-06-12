@@ -6,7 +6,6 @@
 
 - **Version**: V1 (MVP)
 - **Stack**: Next.js 14 (App Router) + Supabase + Tailwind CSS + TypeScript
-- **Team**: 2 developers — Dev A (Auth/Profile) · Dev B (Plans/Attendees)
 
 ---
 
