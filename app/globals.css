@@ -178,6 +178,17 @@
   .plan-card-rot:hover {
     transform: translateY(-4px) rotate(0deg);
   }
+
+  /* Wordmark hover — mirrors the site's image/card motion: a subtle tilt + lift
+     on the same brand easing curve. Applied to the "Plans" logo wherever it appears. */
+  .wordmark-hover {
+    display: inline-block;
+    transform-origin: center bottom;
+    transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .wordmark-hover:hover {
+    transform: rotate(-3deg) translateY(-2px);
+  }
 }
 
 @layer utilities {

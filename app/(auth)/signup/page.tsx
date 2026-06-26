@@ -103,7 +103,7 @@ function SignupForm() {
       <div className="h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
         <GrainOverlay />
         <div className="text-center max-w-sm px-6">
-          <Link href="/" className="font-headline italic text-[22px] text-[#1C1B1B] block mb-8">
+          <Link href="/" className="wordmark-hover font-headline italic text-[22px] text-[#1C1B1B] mb-8">
             Plans
           </Link>
           <h2 className="font-headline italic text-[40px] leading-tight tracking-[-1.5px] text-[#1C1B1B] mb-3">
@@ -124,7 +124,7 @@ function SignupForm() {
       {/* LEFT PANEL — 40% */}
       <div className="w-full lg:w-2/5 flex flex-col justify-between bg-white px-16 py-14 overflow-y-auto z-10 shadow-[4px_0_40px_rgba(28,27,27,0.06)]">
         <div>
-          <Link href="/" className="font-headline italic text-[22px] text-[#1C1B1B] block mb-16">
+          <Link href="/" className="wordmark-hover font-headline italic text-[22px] text-[#1C1B1B] mb-16">
             Plans
           </Link>
 

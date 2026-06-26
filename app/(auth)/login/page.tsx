@@ -106,7 +106,7 @@ function LoginForm() {
       {/* LEFT PANEL — 40% */}
       <div className="w-full lg:w-2/5 flex flex-col justify-between bg-white px-16 py-14 overflow-y-auto z-10 shadow-[4px_0_40px_rgba(28,27,27,0.06)]">
         <div>
-          <Link href="/" className="font-headline italic text-[22px] text-[#1C1B1B] block mb-16">
+          <Link href="/" className="wordmark-hover font-headline italic text-[22px] text-[#1C1B1B] mb-16">
             Plans
           </Link>
 

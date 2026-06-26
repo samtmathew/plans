@@ -27,7 +27,7 @@ async function NavBar({ profile }: { profile: Profile }) {
   return (
     <header className="nav-frosted sticky top-0 z-50 border-b border-[var(--plans-divider)]">
       <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-        <Link href="/home" className="font-headline font-semibold text-lg tracking-tight text-[var(--plans-text)]">
+        <Link href="/home" className="wordmark-hover font-headline font-semibold text-lg tracking-tight text-[var(--plans-text)]">
           Plans
         </Link>
 
