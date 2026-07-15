@@ -1,4 +1,6 @@
-# Plans — Claude Code Instructions
+# Plans — Agent Instructions
+
+> Instructions for all coding agents (Claude Code, Codex, etc.) working in this repo. `CLAUDE.md` imports this file, so edit here — never there.
 
 ## Project Overview
 
