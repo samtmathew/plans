@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useRouter } from 'next/navigation'
 import { PlanCard } from '@/components/plan/PlanCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,11 +31,10 @@ function getInitials(name: string): string {
 }
 
 export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Props) {
-  const bannerColor = profile.avatar_color || AVATAR_BGS[hashName(profile.name) % AVATAR_BGS.length]
-  const initials = getInitials(profile.name)
+  const router = useRouter()
   const hostingCount = plans.length
   const attendingCount = attendingPlans.length
-  const [activeTab, setActiveTab] = useState('plans')
+  const [isEditing, setIsEditing] = useState(false)
 
   // Edit form state
   const [name, setName] = useState(profile.name)
@@ -46,6 +45,9 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
   const [banner, setBanner] = useState<string | null>(profile.photos?.[0] || null)
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '')
   const [isSaving, setIsSaving] = useState(false)
+
+  const bannerColor = profile.avatar_color || AVATAR_BGS[hashName(profile.name) % AVATAR_BGS.length]
+  const initials = getInitials(name)
 
   async function handleSave() {
     setIsSaving(true)
@@ -66,6 +68,8 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
 
       if (error) throw error
       toast.success('Profile updated')
+      setIsEditing(false)
+      router.refresh()
     } catch (err) {
       console.error('Profile update error:', err)
       toast.error('Failed to update profile')
@@ -82,6 +86,7 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
     setTwitterX(profile.twitter_x || '')
     setBanner(profile.photos?.[0] || null)
     setAvatarUrl(profile.avatar_url || '')
+    setIsEditing(false)
   }
 
   return (
@@ -96,16 +101,16 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
         </div>
       </div>
 
-      {/* Avatar — overlaps banner by 56px */}
       <div className="px-6">
+        {/* Avatar — overlaps banner by 56px */}
         <div className="relative -mt-14 mb-4">
           <div
             className="h-[120px] w-[120px] rounded-full flex items-center justify-center font-headline italic text-3xl ring-[6px] ring-white shadow-md overflow-hidden"
             style={{ background: bannerColor, color: '#2E2E2E' }}
           >
-            {profile.avatar_url ? (
+            {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.avatar_url} alt={profile.name} className="h-full w-full rounded-full object-cover" />
+              <img src={avatarUrl} alt={name} className="h-full w-full rounded-full object-cover" />
             ) : initials}
           </div>
         </div>
@@ -113,17 +118,19 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
         {/* Name + bio + actions */}
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <h1 className="font-headline text-2xl font-semibold text-[var(--plans-text)]">{profile.name}</h1>
-            {profile.bio && (
-              <p className="text-sm text-[var(--plans-text-2)] mt-1 max-w-md">{profile.bio}</p>
+            <h1 className="font-headline text-2xl font-semibold text-[var(--plans-text)]">{name}</h1>
+            {bio && (
+              <p className="text-sm text-[var(--plans-text-2)] mt-1 max-w-md">{bio}</p>
             )}
           </div>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className="shrink-0 text-sm font-medium border border-[var(--plans-divider)] rounded-full px-4 py-1.5 text-[var(--plans-text)] hover:bg-[var(--plans-surface)] transition-colors"
-          >
-            Edit profile
-          </button>
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="shrink-0 text-sm font-medium border border-[var(--plans-divider)] rounded-full px-4 py-1.5 text-[var(--plans-text)] hover:bg-[var(--plans-surface)] transition-colors"
+            >
+              Edit profile
+            </button>
+          )}
         </div>
 
         {/* Stats strip */}
@@ -141,22 +148,9 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
           ))}
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full justify-start rounded-none h-auto bg-transparent pb-0 mb-6 gap-0 border-b border-[var(--plans-divider)]">
-            {(['plans', 'settings'] as const).map((tab) => (
-              <TabsTrigger
-                key={tab}
-                value={tab}
-                className="capitalize rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--plans-text)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-4 pb-3 text-sm font-medium"
-              >
-                {tab}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          <TabsContent value="plans">
-            {/* Hosting */}
+        <div className={isEditing ? 'grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10' : ''}>
+          {/* Plans list — always visible */}
+          <div>
             {plans.length > 0 && (
               <div className="mb-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[1.4px] text-[var(--plans-text-2)] mb-4">Hosting</p>
@@ -169,7 +163,6 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
                 </div>
               </div>
             )}
-            {/* Attending */}
             {attendingPlans.length > 0 && (
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[1.4px] text-[var(--plans-text-2)] mb-4">Attending</p>
@@ -190,11 +183,11 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
                 </Button>
               </div>
             )}
-          </TabsContent>
+          </div>
 
-          <TabsContent value="settings">
-            <div className="max-w-md space-y-6">
-              {/* Avatar upload */}
+          {/* Edit panel — only rendered while editing */}
+          {isEditing && (
+            <div className="space-y-6 border-l border-[var(--plans-divider)] pl-8">
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-2">Avatar</p>
                 <AvatarUpload
@@ -205,13 +198,11 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
                 />
               </div>
 
-              {/* Banner upload */}
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-2">Banner</p>
                 <BannerUpload userId={userId} currentUrl={banner} onUpload={setBanner} />
               </div>
 
-              {/* Display name */}
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-1">Display name</p>
                 <Input
@@ -222,7 +213,6 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
                 />
               </div>
 
-              {/* Bio */}
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)] mb-1">Bio</p>
                 <Textarea
@@ -233,7 +223,6 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
                 />
               </div>
 
-              {/* Social links */}
               <div className="space-y-3">
                 <p className="text-[10px] uppercase tracking-widest text-[var(--plans-text-2)]">Social links</p>
                 <div className="relative">
@@ -272,8 +261,8 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
                 </Button>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
     </div>
   )

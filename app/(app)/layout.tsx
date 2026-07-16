@@ -62,7 +62,7 @@ async function NavBar({ profile }: { profile: Profile }) {
                 <Link href="/profile" className="w-full">Your profile</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href="/api/auth/logout" className="w-full">Log out</Link>
+                <Link href="/api/auth/logout" prefetch={false} className="w-full">Log out</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
