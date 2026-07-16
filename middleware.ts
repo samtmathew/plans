@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes — always accessible
-  const publicRoutes = ['/', '/login', '/signup']
+  const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/reset-password']
   const isPublicRoute = publicRoutes.includes(pathname)
   const isJoinRoute = pathname.startsWith('/join/')
   const isApiRoute = pathname.startsWith('/api/')
