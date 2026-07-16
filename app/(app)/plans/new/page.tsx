@@ -42,18 +42,24 @@ export default function NewPlanPage() {
   }, [])
 
   useEffect(() => {
-    const observers: IntersectionObserver[] = []
-    steps.forEach((_, i) => {
-      const el = document.getElementById(`section-0${i + 1}`)
-      if (!el) return
-      const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setActiveStep(i + 1) },
-        { threshold: 0.3, rootMargin: '-80px 0px 0px 0px' }
-      )
-      obs.observe(el)
-      observers.push(obs)
-    })
-    return () => observers.forEach(obs => obs.disconnect())
+    const referenceY = 96 // px from viewport top, clears the sticky header
+
+    function handleScroll() {
+      let current = 1
+      for (let i = 0; i < steps.length; i++) {
+        const el = document.getElementById(`section-0${i + 1}`)
+        if (!el) continue
+        // Topmost section whose top has crossed the reference line is active.
+        if (el.getBoundingClientRect().top - referenceY <= 0) {
+          current = i + 1
+        }
+      }
+      setActiveStep(current)
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const {
@@ -141,7 +147,7 @@ export default function NewPlanPage() {
         <div className="flex-1 min-w-0">
         <form onSubmit={handleSubmit((v) => onSubmit(v, 'active'))} className="space-y-24">
         {/* Section 01 — Basics */}
-        <section id="section-01" className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <section id="section-01" className="scroll-mt-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left: Label (sticky) */}
           <div className="md:col-span-4 md:sticky md:top-20 h-fit">
             <div className="space-y-3">
@@ -238,7 +244,7 @@ export default function NewPlanPage() {
         </section>
 
         {/* Section 02 — Costs */}
-        <section id="section-02" className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <section id="section-02" className="scroll-mt-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left: Label (sticky) */}
           <div className="md:col-span-4 md:sticky md:top-20 h-fit">
             <div className="space-y-3">
@@ -263,7 +269,7 @@ export default function NewPlanPage() {
         </section>
 
         {/* Section 03 — Attendees */}
-        <section id="section-03" className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <section id="section-03" className="scroll-mt-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left: Label (sticky) */}
           <div className="md:col-span-4 md:sticky md:top-20 h-fit">
             <div className="space-y-3">
@@ -358,7 +364,7 @@ export default function NewPlanPage() {
         </section>
 
         {/* Section 04 — Review */}
-        <section id="section-04" className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <section id="section-04" className="scroll-mt-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left: Label (sticky) */}
           <div className="md:col-span-4 md:sticky md:top-20 h-fit">
             <div className="space-y-3">
