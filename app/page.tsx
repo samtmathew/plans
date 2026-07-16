@@ -146,27 +146,32 @@ export default function LandingPage() {
 
       {/* ── S2: FEATURE STRIP ── */}
       <div className="border-y border-[rgba(28,27,27,0.07)]">
-        <div className="max-w-[1200px] mx-auto px-12 grid grid-cols-3">
+        <div className="max-w-[1200px] mx-auto px-12 grid grid-cols-4">
           {[
             {
               n: "01",
               t: "Plans for anything.",
-              d: "Birthdays, trips, concerts, or just hanging out. No templates, no categories.",
+              d: "Create itinerary for your group chat getaways, holidays, tours or simply birthdays, trips, concerts or just hanging out.",
             },
             {
               n: "02",
+              t: "Bring everyone in.",
+              d: "Share a link, manage approvals, see who's coming. One tap from any group chat.",
+            },
+            {
+              n: "03",
               t: "Split costs cleanly.",
               d: "Itemised breakdowns, calculated per-head or group. Always live, never stale.",
             },
             {
-              n: "03",
-              t: "Bring everyone in.",
-              d: "Share a link, manage approvals, see who's coming. One tap from any group chat.",
+              n: "04",
+              t: "Share the memories.",
+              d: "Upload a cover photo and a gallery everyone can see, right from the plan. No separate album to dig through.",
             },
           ].map((feat, i) => (
             <div
               key={i}
-              className={`py-14 px-11 ${i < 2 ? "border-r border-[rgba(28,27,27,0.06)]" : ""}`}
+              className={`py-14 px-11 ${i < 3 ? "border-r border-[rgba(28,27,27,0.06)]" : ""}`}
             >
               <p className="font-headline italic text-[40px] leading-none text-[#C7C5D3] mb-4">{feat.n}</p>
               <p className="text-[17px] font-semibold tracking-[-0.3px] mb-2">{feat.t}</p>
