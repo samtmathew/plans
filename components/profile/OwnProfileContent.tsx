@@ -46,7 +46,9 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '')
   const [isSaving, setIsSaving] = useState(false)
 
-  const bannerColor = profile.avatar_color || AVATAR_BGS[hashName(profile.name) % AVATAR_BGS.length]
+  const isBannerImage = !!banner && !banner.startsWith('#')
+  const fallbackColor = profile.avatar_color || AVATAR_BGS[hashName(profile.name) % AVATAR_BGS.length]
+  const bannerColor = (banner && banner.startsWith('#')) ? banner : fallbackColor
   const initials = getInitials(name)
 
   async function handleSave() {
@@ -92,7 +94,11 @@ export function OwnProfileContent({ profile, userId, plans, attendingPlans }: Pr
   return (
     <div className="-mx-6 -mt-8">
       {/* Banner */}
-      <div className="relative h-[200px]" style={{ background: bannerColor }}>
+      <div className="relative h-[200px] overflow-hidden" style={{ background: bannerColor }}>
+        {isBannerImage && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={banner ?? undefined} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        )}
         <div className="absolute inset-0 opacity-10">
           <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" className="w-full h-full">
             <circle cx="350" cy="60" r="80" fill="currentColor" opacity="0.4"/>

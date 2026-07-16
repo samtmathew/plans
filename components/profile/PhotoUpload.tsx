@@ -134,8 +134,9 @@ export function AvatarUpload({ userId, currentUrl, name, onUpload }: AvatarUploa
       if (uploadError) throw uploadError
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-      setUrl(data.publicUrl)
-      onUpload(data.publicUrl)
+      const bustedUrl = `${data.publicUrl}?v=${Date.now()}`
+      setUrl(bustedUrl)
+      onUpload(bustedUrl)
     } catch (err) {
       console.error('[AvatarUpload] upload error:', err)
       setError('Upload failed. Please try again.')
