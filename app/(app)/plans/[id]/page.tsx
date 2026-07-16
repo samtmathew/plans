@@ -139,7 +139,7 @@ export default async function PlanDetailPage({ params }: Props) {
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="capitalize flex-none rounded-none border-b-2 border-transparent data-[active]:border-[var(--plans-text)] data-[active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-0 pb-2.5 pt-2.5 text-[14px] font-medium"
+                className="capitalize flex-none rounded-none border-b-2 border-transparent data-[active]:border-[var(--plans-text)] data-[active]:text-[var(--plans-text)] text-[var(--plans-text-2)] px-0 pb-2.5 pt-2.5 text-[14px] font-medium focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent"
               >
                 {tab}
               </TabsTrigger>
